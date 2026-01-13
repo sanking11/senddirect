@@ -398,10 +398,8 @@ class FileShare {
     async initializeWebRTC() {
         const config = {
             iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
+                // Metered.ca STUN and TURN servers only (no Google)
                 { urls: 'stun:stun.relay.metered.ca:80' },
-                // Metered TURN servers (free tier)
                 {
                     urls: 'turn:global.relay.metered.ca:80',
                     username: '83eebabf8b4cce9d5dbcb649',
