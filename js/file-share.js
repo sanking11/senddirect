@@ -396,31 +396,20 @@ class FileShare {
     }
 
     async initializeWebRTC() {
+        // Fetch TURN credentials from your Metered.ca account
+        let iceServers = [];
+        try {
+            const response = await fetch('https://senddirect.metered.live/api/v1/turn/credentials?apiKey=4457e679138f5977f02878713ca2d91420e6');
+            iceServers = await response.json();
+            console.log('TURN credentials loaded:', iceServers.length, 'servers');
+        } catch (err) {
+            console.error('Failed to fetch TURN credentials:', err);
+            // Fallback to STUN only
+            iceServers = [{ urls: 'stun:stun.relay.metered.ca:80' }];
+        }
+
         const config = {
-            iceServers: [
-                // Metered.ca STUN and TURN servers only (no Google)
-                { urls: 'stun:stun.relay.metered.ca:80' },
-                {
-                    urls: 'turn:global.relay.metered.ca:80',
-                    username: '83eebabf8b4cce9d5dbcb649',
-                    credential: '2D7JvfkOQtBdYW3R'
-                },
-                {
-                    urls: 'turn:global.relay.metered.ca:80?transport=tcp',
-                    username: '83eebabf8b4cce9d5dbcb649',
-                    credential: '2D7JvfkOQtBdYW3R'
-                },
-                {
-                    urls: 'turn:global.relay.metered.ca:443',
-                    username: '83eebabf8b4cce9d5dbcb649',
-                    credential: '2D7JvfkOQtBdYW3R'
-                },
-                {
-                    urls: 'turns:global.relay.metered.ca:443?transport=tcp',
-                    username: '83eebabf8b4cce9d5dbcb649',
-                    credential: '2D7JvfkOQtBdYW3R'
-                }
-            ],
+            iceServers: iceServers,
             iceCandidatePoolSize: 10
         };
 
