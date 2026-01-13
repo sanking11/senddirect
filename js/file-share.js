@@ -168,43 +168,76 @@ class FileShare {
         return `${protocol}//${window.location.host}`;
     }
 
-    connectToServer() {
+    connectToServer(retries = 3) {
         return new Promise((resolve, reject) => {
             const wsUrl = this.getWebSocketUrl();
             console.log('Connecting to:', wsUrl);
 
-            this.ws = new WebSocket(wsUrl);
+            const attemptConnection = (attempt) => {
+                this.ws = new WebSocket(wsUrl);
 
-            this.ws.onopen = () => {
-                console.log('WebSocket connected');
-                resolve();
+                this.ws.onopen = () => {
+                    console.log('WebSocket connected');
+                    this.reconnectAttempts = 0;
+                    resolve();
+                };
+
+                this.ws.onclose = () => {
+                    console.log('WebSocket closed');
+                    if (this.isHost && this.roomId) {
+                        // Host: try to reconnect and recreate room
+                        this.attemptReconnect();
+                    }
+                };
+
+                this.ws.onerror = (err) => {
+                    console.error('WebSocket error:', err);
+                    if (attempt < retries) {
+                        console.log(`Retrying... (${attempt + 1}/${retries})`);
+                        setTimeout(() => attemptConnection(attempt + 1), 1000);
+                    } else {
+                        reject(new Error('Connection failed after ' + retries + ' attempts'));
+                    }
+                };
+
+                this.ws.onmessage = (e) => {
+                    try {
+                        this.handleMessage(JSON.parse(e.data));
+                    } catch (err) {
+                        console.error('Message error:', err);
+                    }
+                };
+
+                setTimeout(() => {
+                    if (this.ws.readyState !== WebSocket.OPEN && attempt >= retries) {
+                        this.ws.close();
+                        reject(new Error('Connection timeout'));
+                    }
+                }, 10000);
             };
 
-            this.ws.onclose = () => {
-                console.log('WebSocket closed');
-                this.showNotification('Connection closed', 'error');
-            };
-
-            this.ws.onerror = (err) => {
-                console.error('WebSocket error:', err);
-                reject(new Error('Connection failed'));
-            };
-
-            this.ws.onmessage = (e) => {
-                try {
-                    this.handleMessage(JSON.parse(e.data));
-                } catch (err) {
-                    console.error('Message error:', err);
-                }
-            };
-
-            setTimeout(() => {
-                if (this.ws.readyState !== WebSocket.OPEN) {
-                    this.ws.close();
-                    reject(new Error('Connection timeout'));
-                }
-            }, 10000);
+            attemptConnection(1);
         });
+    }
+
+    attemptReconnect() {
+        if (this.reconnectAttempts >= 5) {
+            this.showNotification('Connection lost. Please refresh the page.', 'error');
+            return;
+        }
+        this.reconnectAttempts = (this.reconnectAttempts || 0) + 1;
+        console.log('Reconnecting... attempt', this.reconnectAttempts);
+
+        setTimeout(async () => {
+            try {
+                await this.connectToServer(1);
+                if (this.isHost && this.roomId) {
+                    this.send({ type: 'create-room', roomId: this.roomId });
+                }
+            } catch (e) {
+                this.attemptReconnect();
+            }
+        }, 2000);
     }
 
     send(data) {
@@ -250,7 +283,11 @@ class FileShare {
 
             case 'error':
                 this.showNotification(msg.message, 'error');
-                this.updateTransferStatus(msg.message);
+                if (msg.message === 'Room not found') {
+                    this.updateTransferStatus('Share link expired or invalid. Ask sender for a new link.');
+                } else {
+                    this.updateTransferStatus(msg.message);
+                }
                 break;
         }
     }
