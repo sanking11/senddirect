@@ -1,0 +1,23 @@
+{
+  "name": "source-btn-file-sharing",
+  "version": "1.0.0",
+  "description": "P2P File Sharing with WebRTC",
+  "main": "server/signaling-server.js",
+  "scripts": {
+    "start": "node server/signaling-server.js",
+    "dev": "node server/signaling-server.js"
+  },
+  "keywords": [
+    "webrtc",
+    "p2p",
+    "file-sharing",
+    "peer-to-peer"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
+    "ws": "^8.14.2"
+  }
+}

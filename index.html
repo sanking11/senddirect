@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOURCE BTN - Secure P2P File Sharing</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Background Canvas -->
+    <canvas id="liquidCanvas"></canvas>
+
+    <!-- Futuristic Overlays -->
+    <div class="scan-line"></div>
+    <div class="grid-overlay"></div>
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Corner Decorations (HUD Elements) -->
+    <div class="corner-decoration top-left">
+        <span class="corner-line horizontal"></span>
+        <span class="corner-line vertical"></span>
+        <span class="corner-dot"></span>
+    </div>
+    <div class="corner-decoration top-right">
+        <span class="corner-line horizontal"></span>
+        <span class="corner-line vertical"></span>
+        <span class="corner-dot"></span>
+    </div>
+    <div class="corner-decoration bottom-left">
+        <span class="corner-line horizontal"></span>
+        <span class="corner-line vertical"></span>
+        <span class="corner-dot"></span>
+    </div>
+    <div class="corner-decoration bottom-right">
+        <span class="corner-line horizontal"></span>
+        <span class="corner-line vertical"></span>
+        <span class="corner-dot"></span>
+    </div>
+
+    <!-- Main Container -->
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header liquid-glass">
+            <div class="header-left">
+                <div class="logo glitch-text" data-text="SOURCE BTN">
+                    <span class="logo-icon">
+                        <span class="quantum-symbol">S</span>
+                        <span class="orbital-ring"></span>
+                    </span>
+                    <span class="logo-text">SOURCE BTN</span>
+                </div>
+                <div class="system-time">
+                    <span class="time-label">SYS</span>
+                    <span class="time-display" id="systemTime">00:00:00</span>
+                </div>
+            </div>
+            <nav class="header-nav">
+                <a href="#" class="nav-link active" data-index="01">Share</a>
+                <a href="#" class="nav-link" data-index="02">Receive</a>
+                <a href="#" class="nav-link" data-index="03">About</a>
+            </nav>
+            <div class="header-right">
+                <div class="connection-status">
+                    <span class="status-dot active"></span>
+                    <span class="status-label">P2P Ready</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Hero Section -->
+            <section class="hero-section">
+                <div class="hero-card liquid-glass">
+                    <div class="card-scan-effect"></div>
+                    <div class="card-corner top-left"></div>
+                    <div class="card-corner top-right"></div>
+                    <div class="card-corner bottom-left"></div>
+                    <div class="card-corner bottom-right"></div>
+
+                    <div class="hero-content">
+                        <h1 class="hero-title">Share Files <span class="highlight">Directly</span></h1>
+                        <p class="hero-subtitle">Send files of any size directly from your device without ever storing anything online. Peer-to-peer, end-to-end encrypted, blazingly fast.</p>
+
+                        <!-- File Drop Zone -->
+                        <div class="file-drop-zone" id="dropZone">
+                            <div class="drop-zone-content">
+                                <div class="drop-icon">
+                                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                        <polyline points="17 8 12 3 7 8"/>
+                                        <line x1="12" y1="3" x2="12" y2="15"/>
+                                    </svg>
+                                    <span class="orbital-ring"></span>
+                                </div>
+                                <p class="drop-text">Drop files here or <span class="browse-link">browse</span></p>
+                                <p class="drop-hint">No file size limit • End-to-end encrypted</p>
+                            </div>
+                            <input type="file" id="fileInput" multiple hidden>
+                        </div>
+
+                        <!-- Selected Files List -->
+                        <div class="selected-files" id="selectedFiles" style="display: none;">
+                            <div class="files-header">
+                                <h3 class="files-title">Selected Files</h3>
+                                <button type="button" class="clear-btn" id="clearFiles">Clear All</button>
+                            </div>
+                            <div class="files-list" id="filesList"></div>
+                            <div class="files-total">
+                                <span>Total: <span id="totalSize">0 MB</span></span>
+                                <span id="fileCount">0 files</span>
+                            </div>
+                        </div>
+
+                        <!-- Share Button -->
+                        <button type="button" class="share-btn liquid-glass" id="shareBtn" disabled>
+                            <span class="btn-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="18" cy="5" r="3"/>
+                                    <circle cx="6" cy="12" r="3"/>
+                                    <circle cx="18" cy="19" r="3"/>
+                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                                </svg>
+                            </span>
+                            <span class="btn-text">Generate Share Link</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Share Link Section (Hidden until generated) -->
+                <div class="share-link-section liquid-glass" id="shareLinkSection" style="display: none;">
+                    <div class="card-scan-effect"></div>
+                    <div class="card-corner top-left"></div>
+                    <div class="card-corner top-right"></div>
+                    <div class="card-corner bottom-left"></div>
+                    <div class="card-corner bottom-right"></div>
+
+                    <div class="share-link-content">
+                        <div class="share-status">
+                            <div class="status-icon waiting">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 6v6l4 2"/>
+                                </svg>
+                                <span class="pulse-ring"></span>
+                            </div>
+                            <h3 class="status-title">Waiting for receiver...</h3>
+                            <p class="status-text">Share this link with the person you want to send files to</p>
+                        </div>
+
+                        <div class="link-box">
+                            <input type="text" class="link-input" id="shareLink" readonly>
+                            <button type="button" class="copy-btn" id="copyLink">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                </svg>
+                                <span>Copy</span>
+                            </button>
+                        </div>
+
+                        <div class="qr-code-section">
+                            <div class="qr-code" id="qrCode"></div>
+                            <p class="qr-hint">Scan to receive on mobile</p>
+                        </div>
+
+                        <div class="transfer-warning">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                <line x1="12" y1="9" x2="12" y2="13"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                            <span>Keep this tab open until transfer completes</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transfer Progress Section -->
+                <div class="transfer-section liquid-glass" id="transferSection" style="display: none;">
+                    <div class="card-scan-effect"></div>
+                    <div class="card-corner top-left"></div>
+                    <div class="card-corner top-right"></div>
+                    <div class="card-corner bottom-left"></div>
+                    <div class="card-corner bottom-right"></div>
+
+                    <div class="transfer-content">
+                        <div class="transfer-header">
+                            <div class="transfer-icon">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
+                                </svg>
+                            </div>
+                            <h3 class="transfer-title">Transferring Files</h3>
+                        </div>
+
+                        <div class="transfer-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                                <div class="progress-glow"></div>
+                            </div>
+                            <div class="progress-stats">
+                                <span class="progress-percent" id="progressPercent">0%</span>
+                                <span class="progress-speed" id="progressSpeed">0 MB/s</span>
+                            </div>
+                        </div>
+
+                        <div class="transfer-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Transferred</span>
+                                <span class="detail-value" id="transferredSize">0 MB</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Remaining</span>
+                                <span class="detail-value" id="remainingSize">0 MB</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Time Left</span>
+                                <span class="detail-value" id="timeLeft">Calculating...</span>
+                            </div>
+                        </div>
+
+                        <div class="current-file">
+                            <span class="file-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
+                                    <polyline points="13 2 13 9 20 9"/>
+                                </svg>
+                            </span>
+                            <span class="file-name" id="currentFileName">file.txt</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="features-section">
+                <div class="features-grid">
+                    <div class="feature-card liquid-glass">
+                        <div class="feature-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                                <line x1="12" y1="22.08" x2="12" y2="12"/>
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">No Size Limit</h3>
+                        <p class="feature-desc">Share files of any size. We don't store your data, so there's no limit.</p>
+                    </div>
+
+                    <div class="feature-card liquid-glass">
+                        <div class="feature-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Peer-to-Peer</h3>
+                        <p class="feature-desc">Direct transfer using WebRTC. Data flows directly between devices.</p>
+                    </div>
+
+                    <div class="feature-card liquid-glass">
+                        <div class="feature-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">End-to-End Encrypted</h3>
+                        <p class="feature-desc">Your files are encrypted with DTLS 1.3. Only you and the receiver can access them.</p>
+                    </div>
+
+                    <div class="feature-card liquid-glass">
+                        <div class="feature-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Blazingly Fast</h3>
+                        <p class="feature-desc">WebRTC finds the shortest path. Sometimes data doesn't even leave your network.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- How It Works Section -->
+            <section class="how-section">
+                <h2 class="section-title">How It Works</h2>
+                <div class="steps-grid">
+                    <div class="step-card liquid-glass">
+                        <div class="step-number">01</div>
+                        <h3 class="step-title">Select Files</h3>
+                        <p class="step-desc">Drop files or browse. No upload needed - files stay on your device.</p>
+                    </div>
+                    <div class="step-arrow">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </div>
+                    <div class="step-card liquid-glass">
+                        <div class="step-number">02</div>
+                        <h3 class="step-title">Share Link</h3>
+                        <p class="step-desc">Generate a unique link and share it with your recipient.</p>
+                    </div>
+                    <div class="step-arrow">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </div>
+                    <div class="step-card liquid-glass">
+                        <div class="step-number">03</div>
+                        <h3 class="step-title">Transfer</h3>
+                        <p class="step-desc">Files transfer directly. Close the tab when done - nothing stored online.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer liquid-glass">
+            <div class="hex-pattern"></div>
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span class="logo-icon">
+                        <span class="quantum-symbol">S</span>
+                    </span>
+                    <span>SOURCE BTN</span>
+                </div>
+                <div class="footer-status">
+                    <div class="status-indicator">
+                        <span class="status-dot active"></span>
+                        <span class="status-text">SYSTEMS ONLINE</span>
+                    </div>
+                    <div class="status-indicator">
+                        <span class="status-dot" id="webrtcStatus"></span>
+                        <span class="status-text">WEBRTC READY</span>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <a href="#">About</a>
+                    <a href="#">Privacy</a>
+                    <a href="#">Terms</a>
+                    <a href="#">GitHub</a>
+                </div>
+                <div class="footer-info">
+                    <span class="encryption-badge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        DTLS 1.3 Encrypted
+                    </span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- SVG Filters -->
+    <svg class="svg-filters">
+        <defs>
+            <filter id="glass-distortion" x="-50%" y="-50%" width="200%" height="200%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.01 0.003" numOctaves="3" result="noise"/>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+                <feGaussianBlur stdDeviation="0.3"/>
+            </filter>
+        </defs>
+    </svg>
+
+    <script src="js/background.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/file-share.js"></script>
+</body>
+</html>

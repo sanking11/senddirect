@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(del \"c:\\\\Users\\\\Sunny.Tailor\\\\Downloads\\\\tech-news-app\\\\tech-news-app\\\\js\\\\news-aggregator.js\")",
+      "Bash(ipconfig:*)",
+      "Bash(findstr:*)",
+      "Bash(npm install)",
+      "Bash(node server/signaling-server.js:*)",
+      "Bash(timeout:*)",
+      "Bash(netsh advfirewall firewall add rule name=\"Node.js P2P File Share\" dir=in action=allow protocol=TCP localport=3000)",
+      "Bash(taskkill:*)",
+      "Bash(netstat:*)",
+      "Bash(powershell -Command \"Stop-Process -Id 40796 -Force\")",
+      "Bash(powershell -Command \"Get-Process -Name node -ErrorAction SilentlyContinue | Stop-Process -Force\")",
+      "Bash(powershell -Command \"Stop-Process -Id 18500 -Force\")",
+      "Bash(npm install:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(dir:*)"
+    ]
+  }
+}
