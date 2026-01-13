@@ -109,11 +109,13 @@ body {
     position: relative;
 }
 
-/* Orbiting UFO Discs */
+/* Orbiting UFO Discs - Subtle background */
 .ufo-orbit {
     position: absolute;
-    filter: drop-shadow(0 0 6px rgba(74, 222, 128, 0.8));
+    filter: drop-shadow(0 0 3px rgba(74, 222, 128, 0.3));
     pointer-events: none;
+    opacity: 0.25;
+    z-index: 0;
 }
 
 .ufo-orbit svg {
@@ -122,92 +124,120 @@ body {
 
 /* UFO 1 - Top orbit (furthest out) */
 .ufo-1 {
-    animation: ufoOrbit1 5s linear infinite;
+    animation: ufoOrbit1 8s linear infinite;
 }
 
 /* UFO 2 - Middle orbit */
 .ufo-2 {
-    animation: ufoOrbit2 7s linear infinite;
+    animation: ufoOrbit2 10s linear infinite;
 }
 
 /* UFO 3 - Bottom orbit (closest) */
 .ufo-3 {
-    animation: ufoOrbit3 9s linear infinite;
+    animation: ufoOrbit3 12s linear infinite;
 }
 
 /* Separate orbital paths - no collisions */
 @keyframes ufoOrbit1 {
     0% {
-        transform: translate(-25px, -20px) rotate(0deg);
+        transform: translate(-30px, -25px) rotate(0deg);
     }
     25% {
-        transform: translate(25px, -20px) rotate(10deg);
+        transform: translate(30px, -25px) rotate(10deg);
     }
     50% {
-        transform: translate(25px, -5px) rotate(0deg);
+        transform: translate(30px, -8px) rotate(0deg);
     }
     75% {
-        transform: translate(-25px, -5px) rotate(-10deg);
+        transform: translate(-30px, -8px) rotate(-10deg);
     }
     100% {
-        transform: translate(-25px, -20px) rotate(0deg);
+        transform: translate(-30px, -25px) rotate(0deg);
     }
 }
 
 @keyframes ufoOrbit2 {
     0% {
-        transform: translate(28px, 0px) rotate(5deg);
+        transform: translate(32px, 0px) rotate(5deg);
     }
     25% {
-        transform: translate(0px, -25px) rotate(-5deg);
+        transform: translate(0px, -30px) rotate(-5deg);
     }
     50% {
-        transform: translate(-28px, 0px) rotate(5deg);
+        transform: translate(-32px, 0px) rotate(5deg);
     }
     75% {
-        transform: translate(0px, 25px) rotate(-5deg);
+        transform: translate(0px, 30px) rotate(-5deg);
     }
     100% {
-        transform: translate(28px, 0px) rotate(5deg);
+        transform: translate(32px, 0px) rotate(5deg);
     }
 }
 
 @keyframes ufoOrbit3 {
     0% {
-        transform: translate(-22px, 22px) rotate(-5deg);
+        transform: translate(-28px, 28px) rotate(-5deg);
     }
     25% {
-        transform: translate(-22px, 8px) rotate(5deg);
+        transform: translate(-28px, 10px) rotate(5deg);
     }
     50% {
-        transform: translate(22px, 8px) rotate(-5deg);
+        transform: translate(28px, 10px) rotate(-5deg);
     }
     75% {
-        transform: translate(22px, 22px) rotate(5deg);
+        transform: translate(28px, 28px) rotate(5deg);
     }
     100% {
-        transform: translate(-22px, 22px) rotate(-5deg);
+        transform: translate(-28px, 28px) rotate(-5deg);
     }
 }
 
-/* Rocket Emoji */
-.rocket-emoji {
+/* Rotating Ring around S */
+.orbital-ring {
     position: absolute;
-    right: -8px;
+    width: 32px;
+    height: 32px;
+    border: 2px solid transparent;
+    border-top-color: var(--accent-green);
+    border-right-color: rgba(74, 222, 128, 0.5);
+    border-radius: 50%;
     top: 50%;
-    transform: translateY(-50%);
-    font-size: 14px;
-    filter: hue-rotate(80deg) saturate(1.5) brightness(1.1) drop-shadow(0 0 4px rgba(74, 222, 128, 0.6));
-    animation: rocketPulse 2s ease-in-out infinite;
-    z-index: 2;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: ringRotate 3s linear infinite;
+    filter: drop-shadow(0 0 4px rgba(74, 222, 128, 0.6));
 }
 
-@keyframes rocketPulse {
-    0%, 100% {
-        filter: hue-rotate(80deg) saturate(1.5) brightness(1.1) drop-shadow(0 0 4px rgba(74, 222, 128, 0.6));
+.orbital-ring::before {
+    content: '';
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border: 1px solid transparent;
+    border-bottom-color: rgba(74, 222, 128, 0.4);
+    border-left-color: rgba(74, 222, 128, 0.2);
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: ringRotateReverse 2s linear infinite;
+}
+
+@keyframes ringRotate {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
     }
-    50% {
-        filter: hue-rotate(80deg) saturate(1.5) brightness(1.2) drop-shadow(0 0 8px rgba(74, 222, 128, 0.9));
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+@keyframes ringRotateReverse {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(-360deg);
     }
 }
 
