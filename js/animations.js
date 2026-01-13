@@ -23,6 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initButtonEffects();
     initStatusIndicators();
     initMouseParallax();
+    initFeatureCardMouseTracking();
+    initTypingEffect();
+    initGlowingParticles();
 });
 
 // System Time Display
@@ -337,3 +340,144 @@ visibleStyles.textContent = `
     }
 `;
 document.head.appendChild(visibleStyles);
+
+// Feature Card Mouse Tracking for Radial Glow
+function initFeatureCardMouseTracking() {
+    const featureCards = document.querySelectorAll('.feature-card');
+
+    featureCards.forEach(card => {
+        const mouseGlow = card.querySelector('.mouse-glow');
+        if (!mouseGlow) return;
+
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            mouseGlow.style.setProperty('--mouse-x', `${x}%`);
+            mouseGlow.style.setProperty('--mouse-y', `${y}%`);
+        });
+    });
+}
+
+// Typing Effect for Hero Subtitle
+function initTypingEffect() {
+    const subtitle = document.querySelector('.hero-subtitle');
+    if (!subtitle) return;
+
+    // Store original text
+    const originalText = subtitle.textContent;
+    const words = originalText.split(' ');
+
+    // Add typing cursor class temporarily
+    subtitle.innerHTML = '';
+    subtitle.classList.add('typing-cursor');
+
+    let wordIndex = 0;
+
+    function typeWord() {
+        if (wordIndex < words.length) {
+            subtitle.textContent += (wordIndex > 0 ? ' ' : '') + words[wordIndex];
+            wordIndex++;
+            setTimeout(typeWord, 50 + Math.random() * 50);
+        } else {
+            // Remove cursor after typing complete
+            setTimeout(() => {
+                subtitle.classList.remove('typing-cursor');
+            }, 1000);
+        }
+    }
+
+    // Start typing after a short delay
+    setTimeout(typeWord, 500);
+}
+
+// Glowing Particles that follow cursor
+function initGlowingParticles() {
+    const glowContainer = document.createElement('div');
+    glowContainer.className = 'cursor-glow-container';
+    glowContainer.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9997;
+        overflow: hidden;
+    `;
+    document.body.appendChild(glowContainer);
+
+    let lastX = 0;
+    let lastY = 0;
+    let particles = [];
+
+    document.addEventListener('mousemove', (e) => {
+        const dx = e.clientX - lastX;
+        const dy = e.clientY - lastY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Only create particle if mouse moved enough
+        if (distance > 30) {
+            createGlowParticle(e.clientX, e.clientY, glowContainer);
+            lastX = e.clientX;
+            lastY = e.clientY;
+        }
+    });
+
+    function createGlowParticle(x, y, container) {
+        if (particles.length > 20) return; // Limit particles
+
+        const particle = document.createElement('div');
+        particle.style.cssText = `
+            position: absolute;
+            left: ${x}px;
+            top: ${y}px;
+            width: 8px;
+            height: 8px;
+            background: rgba(74, 222, 128, 0.9);
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: 0 0 15px rgba(74, 222, 128, 1), 0 0 30px rgba(74, 222, 128, 0.6), 0 0 45px rgba(74, 222, 128, 0.3);
+            transform: translate(-50%, -50%);
+            transition: all 1.2s ease-out;
+        `;
+
+        container.appendChild(particle);
+        particles.push(particle);
+
+        // Animate particle
+        requestAnimationFrame(() => {
+            particle.style.opacity = '0';
+            particle.style.transform = `translate(-50%, -50%) scale(2)`;
+        });
+
+        // Remove particle after animation
+        setTimeout(() => {
+            particle.remove();
+            particles = particles.filter(p => p !== particle);
+        }, 1000);
+    }
+}
+
+// Enhanced hover effects for all liquid-glass elements
+document.addEventListener('mouseenter', (e) => {
+    const glassElement = e.target.closest('.liquid-glass');
+    if (glassElement && !glassElement.classList.contains('header')) {
+        // Trigger the holographic shimmer
+        const beforePseudo = glassElement;
+        beforePseudo.style.setProperty('--shimmer-active', '1');
+    }
+}, true);
+
+// Add hexagonal grid hover effect
+const hexGridStyle = document.createElement('style');
+hexGridStyle.textContent = `
+    .liquid-glass:hover .hex-pattern {
+        opacity: 0.8;
+    }
+
+    .cursor-glow-container {
+        mix-blend-mode: screen;
+    }
+`;
+document.head.appendChild(hexGridStyle);
