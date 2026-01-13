@@ -449,6 +449,96 @@ body {
     margin-bottom: 2rem;
 }
 
+/* Radar Loader Animation */
+.radar-loader {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    border-radius: 50%;
+    border: 2px solid var(--accent-blue);
+    background-color: rgba(96, 165, 250, 0.1);
+    background-image:
+        repeating-radial-gradient(
+            transparent 0,
+            transparent 14px,
+            rgba(96, 165, 250, 0.15) 15px,
+            rgba(96, 165, 250, 0.15) 16px
+        );
+    overflow: hidden;
+    box-shadow:
+        0 0 20px rgba(96, 165, 250, 0.3),
+        inset 0 0 20px rgba(96, 165, 250, 0.1);
+}
+
+.radar-sweep {
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    top: 50%;
+    left: 50%;
+    transform-origin: left top;
+    border-left: 2px solid var(--accent-blue);
+    background-image: linear-gradient(
+        to right,
+        rgba(96, 165, 250, 0.6) 0%,
+        transparent 100%
+    );
+    animation: radarSweep 2s infinite linear;
+}
+
+.radar-dot {
+    position: absolute;
+    left: 65%;
+    top: 30%;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--accent-green);
+    box-shadow: 0 0 8px 2px var(--accent-green);
+    animation: radarDotGlow 2s infinite linear, radarDotMove 8s infinite ease-in-out;
+}
+
+@keyframes radarSweep {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes radarDotGlow {
+    0%, 55%, 85%, 100% {
+        opacity: 0.4;
+        box-shadow: 0 0 4px 1px var(--accent-green);
+    }
+    60% {
+        opacity: 1;
+        box-shadow: 0 0 12px 4px var(--accent-green);
+    }
+}
+
+@keyframes radarDotMove {
+    0% {
+        top: 25%;
+        left: 70%;
+    }
+    25% {
+        top: 60%;
+        left: 65%;
+    }
+    50% {
+        top: 45%;
+        left: 30%;
+    }
+    75% {
+        top: 20%;
+        left: 45%;
+    }
+    100% {
+        top: 25%;
+        left: 70%;
+    }
+}
+
 .status-icon {
     position: relative;
     width: 64px;
