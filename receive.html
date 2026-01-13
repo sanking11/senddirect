@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receive Files - Send Direct</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Background Canvas -->
+    <canvas id="liquidCanvas"></canvas>
+
+    <!-- Futuristic Overlays -->
+    <div class="grid-overlay"></div>
+    <div class="screen-flicker"></div>
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Main Container -->
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header liquid-glass">
+            <div class="header-left">
+                <a href="index.html" class="logo glitch-text" data-text="Send Direct" style="text-decoration: none;">
+                    <span class="logo-icon">
+                        <span class="quantum-symbol">S</span>
+                        <span class="orbital-ring"></span>
+                        <svg class="spaceship-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <ellipse cx="12" cy="14" rx="8" ry="3"/>
+                            <path d="M8 14c0-4 1.5-10 4-10s4 6 4 10"/>
+                            <ellipse cx="12" cy="14" rx="3" ry="1.5" fill="currentColor" opacity="0.3"/>
+                            <circle cx="12" cy="8" r="1.5" fill="currentColor"/>
+                            <path d="M9 17l-2 5M15 17l2 5M12 17v5" stroke-dasharray="2 2" opacity="0.5"/>
+                        </svg>
+                    </span>
+                    <div class="logo-text-container">
+                        <span class="logo-text">Send Direct</span>
+                        <span class="logo-version">v1.0</span>
+                    </div>
+                </a>
+            </div>
+            <nav class="header-nav">
+                <a href="index.html" class="nav-link" data-index="01">Share</a>
+                <a href="receive.html" class="nav-link active" data-index="02">Receive</a>
+                <a href="about.html" class="nav-link" data-index="03">About</a>
+            </nav>
+            <div class="header-right">
+                <div class="connection-status">
+                    <span class="status-dot active"></span>
+                    <span class="status-label">P2P Ready</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <section class="page-section">
+                <div class="page-card liquid-glass">
+                    <div class="shimmer-effect"></div>
+                    <div class="circuit-pattern"></div>
+
+                    <div class="page-content">
+                        <h1 class="page-title">Receive <span class="highlight">Files</span></h1>
+
+                        <div class="receive-intro">
+                            <div class="receive-icon">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                            </div>
+                            <p class="lead-text">To receive files, you need a share link from the sender.</p>
+                        </div>
+
+                        <div class="receive-steps">
+                            <div class="receive-step">
+                                <span class="step-num">1</span>
+                                <div class="step-content">
+                                    <h3>Get the Link</h3>
+                                    <p>Ask the sender to share their unique transfer link with you.</p>
+                                </div>
+                            </div>
+                            <div class="receive-step">
+                                <span class="step-num">2</span>
+                                <div class="step-content">
+                                    <h3>Open the Link</h3>
+                                    <p>Click or paste the link in your browser. The connection will establish automatically.</p>
+                                </div>
+                            </div>
+                            <div class="receive-step">
+                                <span class="step-num">3</span>
+                                <div class="step-content">
+                                    <h3>Download Files</h3>
+                                    <p>Files will download automatically once the transfer completes.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="receive-note">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="16" x2="12" y2="12"/>
+                                <line x1="12" y1="8" x2="12.01" y2="8"/>
+                            </svg>
+                            <p>Keep this tab open until the transfer completes. Files are transferred directly and securely using end-to-end encryption.</p>
+                        </div>
+
+                        <div class="back-home">
+                            <a href="index.html" class="action-btn liquid-glass">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="18" cy="5" r="3"/>
+                                    <circle cx="6" cy="12" r="3"/>
+                                    <circle cx="18" cy="19" r="3"/>
+                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                                </svg>
+                                Start Sharing Instead
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer-animated">
+            <div class="footer-glow"></div>
+            <div class="footer-main-content">
+                <div class="footer-links">
+                    <a href="about.html">About</a>
+                    <a href="privacy.html">Privacy</a>
+                    <a href="terms.html">Terms</a>
+                </div>
+                <div class="footer-credit">
+                    <p class="footer-text">
+                        Designed and Developed by <span class="footer-name">SUNNY</span>
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/background.js"></script>
+    <script src="js/animations.js"></script>
+</body>
+</html>
