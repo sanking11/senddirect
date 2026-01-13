@@ -253,6 +253,7 @@ class FileShare {
         switch (msg.type) {
             case 'room-created':
                 console.log('Room created:', msg.roomId);
+                if (this.onRoomCreated) this.onRoomCreated();
                 break;
 
             case 'room-joined':
@@ -304,7 +305,15 @@ class FileShare {
 
         try {
             await this.connectToServer();
+
+            // Wait for room-created confirmation
+            const roomCreated = new Promise((resolve, reject) => {
+                this.onRoomCreated = resolve;
+                setTimeout(() => reject(new Error('Room creation timeout')), 10000);
+            });
+
             this.send({ type: 'create-room', roomId: this.roomId });
+            await roomCreated;
 
             const shareLinkSection = document.getElementById('shareLinkSection');
             const shareLink = document.getElementById('shareLink');
@@ -319,10 +328,22 @@ class FileShare {
             await this.initializeWebRTC();
             this.showNotification('Share link created!', 'success');
 
+            // Start keepalive ping
+            this.startKeepalive();
+
         } catch (error) {
             console.error('Error:', error);
             this.showNotification('Failed to connect: ' + error.message, 'error');
         }
+    }
+
+    startKeepalive() {
+        // Send ping every 25 seconds to keep connection alive
+        this.keepaliveInterval = setInterval(() => {
+            if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                this.send({ type: 'ping' });
+            }
+        }, 25000);
     }
 
     generateQRCode(link) {

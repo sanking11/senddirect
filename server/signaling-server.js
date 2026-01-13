@@ -177,6 +177,14 @@ function handleMessage(ws, msg) {
         case 'ice-candidate':
             forwardToOtherPeer(ws, msg);
             break;
+
+        case 'ping':
+            // Keep room alive
+            if (ws.roomId && rooms.has(ws.roomId)) {
+                rooms.get(ws.roomId).lastActivity = Date.now();
+            }
+            send(ws, { type: 'pong' });
+            break;
     }
 }
 
