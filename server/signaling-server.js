@@ -30,7 +30,7 @@ const server = http.createServer((req, res) => {
     // Proxy TURN credentials (keeps API key hidden)
     if (req.url === '/api/turn-credentials') {
         const https = require('https');
-        const apiKey = process.env.METERED_API_KEY || '4457e679138f5977f02878713ca2d91420e6';
+        const apiKey = process.env.METERED_API_KEY;
         const url = `https://senddirect.metered.live/api/v1/turn/credentials?apiKey=${apiKey}`;
 
         https.get(url, (apiRes) => {
