@@ -1,18 +1,18 @@
 // WebRTC Peer-to-Peer File Sharing
 // End-to-end encrypted using DTLS 1.3
-// Uses Socket.IO for signaling (with HTTP polling fallback)
+// Pure WebSocket for maximum performance
 
 class FileShare {
     constructor() {
         this.files = [];
         this.peerConnection = null;
         this.dataChannel = null;
-        this.socket = null;
+        this.ws = null;
         this.roomId = null;
         this.isHost = false;
         this.receivedChunks = [];
         this.receivedFileInfo = null;
-        this.chunkSize = 64 * 1024; // 64KB chunks
+        this.chunkSize = 64 * 1024;
         this.transferStartTime = null;
         this.totalBytesTransferred = 0;
 
@@ -38,35 +38,15 @@ class FileShare {
             dropZone.addEventListener('click', () => fileInput?.click());
         }
 
-        if (fileInput) {
-            fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
-        }
-
-        if (browseLink) {
-            browseLink.addEventListener('click', (e) => {
-                e.stopPropagation();
-                fileInput?.click();
-            });
-        }
-
-        if (shareBtn) {
-            shareBtn.addEventListener('click', () => this.createShareLink());
-        }
-
-        if (copyLink) {
-            copyLink.addEventListener('click', () => this.copyShareLink());
-        }
+        if (fileInput) fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+        if (browseLink) browseLink.addEventListener('click', (e) => { e.stopPropagation(); fileInput?.click(); });
+        if (shareBtn) shareBtn.addEventListener('click', () => this.createShareLink());
+        if (copyLink) copyLink.addEventListener('click', () => this.copyShareLink());
 
         const clearFilesBtn = document.getElementById('clearFiles');
-        if (clearFilesBtn) {
-            clearFilesBtn.addEventListener('click', () => this.clearAllFiles());
-        }
+        if (clearFilesBtn) clearFilesBtn.addEventListener('click', () => this.clearAllFiles());
 
-        window.addEventListener('beforeunload', () => {
-            if (this.socket) {
-                this.socket.disconnect();
-            }
-        });
+        window.addEventListener('beforeunload', () => { if (this.ws) this.ws.close(); });
     }
 
     clearAllFiles() {
@@ -76,30 +56,17 @@ class FileShare {
         this.updateShareButton();
     }
 
-    handleDragOver(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.currentTarget.classList.add('drag-over');
-    }
-
-    handleDragLeave(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.currentTarget.classList.remove('drag-over');
-    }
+    handleDragOver(e) { e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.add('drag-over'); }
+    handleDragLeave(e) { e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.remove('drag-over'); }
 
     handleDrop(e) {
         e.preventDefault();
         e.stopPropagation();
         e.currentTarget.classList.remove('drag-over');
-        const files = Array.from(e.dataTransfer.files);
-        this.addFiles(files);
+        this.addFiles(Array.from(e.dataTransfer.files));
     }
 
-    handleFileSelect(e) {
-        const files = Array.from(e.target.files);
-        this.addFiles(files);
-    }
+    handleFileSelect(e) { this.addFiles(Array.from(e.target.files)); }
 
     addFiles(newFiles) {
         this.files = [...this.files, ...newFiles];
@@ -112,16 +79,12 @@ class FileShare {
         this.files.splice(index, 1);
         this.updateFilesList();
         this.updateShareButton();
-        if (this.files.length === 0) {
-            this.hideSelectedFiles();
-        }
+        if (this.files.length === 0) this.hideSelectedFiles();
     }
 
     updateShareButton() {
         const shareBtn = document.getElementById('shareBtn');
-        if (shareBtn) {
-            shareBtn.disabled = this.files.length === 0;
-        }
+        if (shareBtn) shareBtn.disabled = this.files.length === 0;
     }
 
     updateFilesList() {
@@ -147,29 +110,25 @@ class FileShare {
         filesList.querySelectorAll('.remove-file').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const index = parseInt(btn.dataset.index);
-                this.removeFile(index);
+                this.removeFile(parseInt(btn.dataset.index));
             });
         });
 
         const totalSize = this.files.reduce((sum, file) => sum + file.size, 0);
         const totalSizeEl = document.getElementById('totalSize');
         const fileCountEl = document.getElementById('fileCount');
-
         if (totalSizeEl) totalSizeEl.textContent = this.formatFileSize(totalSize);
         if (fileCountEl) fileCountEl.textContent = `${this.files.length} file${this.files.length !== 1 ? 's' : ''}`;
     }
 
     showSelectedFiles() {
-        const selectedFiles = document.getElementById('selectedFiles');
-        if (selectedFiles && this.files.length > 0) {
-            selectedFiles.style.display = 'block';
-        }
+        const el = document.getElementById('selectedFiles');
+        if (el && this.files.length > 0) el.style.display = 'block';
     }
 
     hideSelectedFiles() {
-        const selectedFiles = document.getElementById('selectedFiles');
-        if (selectedFiles) selectedFiles.style.display = 'none';
+        const el = document.getElementById('selectedFiles');
+        if (el) el.style.display = 'none';
     }
 
     getFileIcon(mimeType) {
@@ -200,107 +159,105 @@ class FileShare {
     generateRoomId() {
         const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
         let result = '';
-        for (let i = 0; i < 12; i++) {
-            result += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
+        for (let i = 0; i < 12; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
         return result;
     }
 
-    // Connect to Socket.IO server
-    connectToSignalingServer() {
+    getWebSocketUrl() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        return `${protocol}//${window.location.host}`;
+    }
+
+    connectToServer() {
         return new Promise((resolve, reject) => {
-            try {
-                const serverUrl = window.location.origin;
-                console.log('Connecting to Socket.IO server:', serverUrl);
+            const wsUrl = this.getWebSocketUrl();
+            console.log('Connecting to:', wsUrl);
 
-                this.socket = io(serverUrl, {
-                    transports: ['polling', 'websocket'], // Try polling first
-                    timeout: 20000,
-                    forceNew: true
-                });
+            this.ws = new WebSocket(wsUrl);
 
-                this.socket.on('connect', () => {
-                    console.log('Connected to server via:', this.socket.io.engine.transport.name);
-                    resolve();
-                });
+            this.ws.onopen = () => {
+                console.log('WebSocket connected');
+                resolve();
+            };
 
-                this.socket.on('connect_error', (error) => {
-                    console.error('Connection error:', error);
-                    reject(new Error('Failed to connect to server'));
-                });
+            this.ws.onclose = () => {
+                console.log('WebSocket closed');
+                this.showNotification('Connection closed', 'error');
+            };
 
-                this.socket.on('disconnect', (reason) => {
-                    console.log('Disconnected:', reason);
-                    if (reason === 'io server disconnect') {
-                        this.showNotification('Disconnected from server', 'error');
-                    }
-                });
+            this.ws.onerror = (err) => {
+                console.error('WebSocket error:', err);
+                reject(new Error('Connection failed'));
+            };
 
-                // Setup signaling event handlers
-                this.setupSignalingHandlers();
+            this.ws.onmessage = (e) => {
+                try {
+                    this.handleMessage(JSON.parse(e.data));
+                } catch (err) {
+                    console.error('Message error:', err);
+                }
+            };
 
-                // Timeout
-                setTimeout(() => {
-                    if (!this.socket.connected) {
-                        this.socket.disconnect();
-                        reject(new Error('Connection timeout'));
-                    }
-                }, 15000);
-
-            } catch (e) {
-                console.error('Error creating socket:', e);
-                reject(e);
-            }
+            setTimeout(() => {
+                if (this.ws.readyState !== WebSocket.OPEN) {
+                    this.ws.close();
+                    reject(new Error('Connection timeout'));
+                }
+            }, 10000);
         });
     }
 
-    setupSignalingHandlers() {
-        this.socket.on('room-created', (data) => {
-            console.log('Room created:', data.roomId);
-        });
+    send(data) {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify(data));
+        }
+    }
 
-        this.socket.on('room-joined', (data) => {
-            console.log('Joined room:', data.roomId);
-            this.updateTransferStatus('Connected! Waiting for sender...');
-        });
+    async handleMessage(msg) {
+        console.log('Received:', msg.type);
 
-        this.socket.on('peer-joined', async (data) => {
-            console.log('Peer joined');
-            this.showNotification('Receiver connected!', 'success');
-            this.updateShareStatus('Receiver connected! Establishing connection...');
-            await this.createAndSendOffer();
-        });
+        switch (msg.type) {
+            case 'room-created':
+                console.log('Room created:', msg.roomId);
+                break;
 
-        this.socket.on('peer-left', (data) => {
-            console.log('Peer left:', data.message);
-            this.showNotification(data.message || 'Peer disconnected', 'error');
-            this.updateTransferStatus('Peer disconnected');
-        });
+            case 'room-joined':
+                this.updateTransferStatus('Connected! Waiting for sender...');
+                break;
 
-        this.socket.on('offer', async (data) => {
-            console.log('Received offer');
-            await this.handleOffer(data);
-        });
+            case 'peer-joined':
+                this.showNotification('Receiver connected!', 'success');
+                this.updateShareStatus('Establishing connection...');
+                await this.createAndSendOffer();
+                break;
 
-        this.socket.on('answer', async (data) => {
-            console.log('Received answer');
-            await this.handleAnswer(data);
-        });
+            case 'peer-left':
+                this.showNotification(msg.message || 'Peer disconnected', 'error');
+                this.updateTransferStatus('Peer disconnected');
+                break;
 
-        this.socket.on('ice-candidate', async (data) => {
-            await this.handleIceCandidate(data);
-        });
+            case 'offer':
+                await this.handleOffer(msg);
+                break;
 
-        this.socket.on('error', (data) => {
-            console.error('Server error:', data.message);
-            this.showNotification(data.message, 'error');
-            this.updateTransferStatus(data.message);
-        });
+            case 'answer':
+                await this.handleAnswer(msg);
+                break;
+
+            case 'ice-candidate':
+                await this.handleIceCandidate(msg);
+                break;
+
+            case 'error':
+                this.showNotification(msg.message, 'error');
+                this.updateTransferStatus(msg.message);
+                break;
+        }
     }
 
     async createShareLink() {
         if (this.files.length === 0) {
-            this.showNotification('Please select files to share', 'error');
+            this.showNotification('Please select files', 'error');
             return;
         }
 
@@ -308,9 +265,8 @@ class FileShare {
         this.roomId = this.generateRoomId();
 
         try {
-            await this.connectToSignalingServer();
-
-            this.socket.emit('create-room', { roomId: this.roomId });
+            await this.connectToServer();
+            this.send({ type: 'create-room', roomId: this.roomId });
 
             const shareLinkSection = document.getElementById('shareLinkSection');
             const shareLink = document.getElementById('shareLink');
@@ -323,10 +279,10 @@ class FileShare {
             }
 
             await this.initializeWebRTC();
-            this.showNotification('Share link created! Waiting for receiver...', 'success');
+            this.showNotification('Share link created!', 'success');
 
         } catch (error) {
-            console.error('Failed to create share link:', error);
+            console.error('Error:', error);
             this.showNotification('Failed to connect: ' + error.message, 'error');
         }
     }
@@ -341,7 +297,6 @@ class FileShare {
     async copyShareLink() {
         const shareLink = document.getElementById('shareLink');
         if (!shareLink) return;
-
         try {
             await navigator.clipboard.writeText(shareLink.value);
             this.showNotification('Link copied!', 'success');
@@ -355,7 +310,6 @@ class FileShare {
     checkUrlForRoom() {
         const urlParams = new URLSearchParams(window.location.search);
         const roomId = urlParams.get('room');
-
         if (roomId) {
             this.isHost = false;
             this.roomId = roomId;
@@ -366,19 +320,15 @@ class FileShare {
 
     async joinRoom() {
         try {
-            this.updateTransferStatus('Connecting to server...');
-            await this.connectToSignalingServer();
-
-            this.updateTransferStatus('Joining room...');
-            this.socket.emit('join-room', { roomId: this.roomId });
-
+            this.updateTransferStatus('Connecting...');
+            await this.connectToServer();
+            this.send({ type: 'join-room', roomId: this.roomId });
             await this.initializeWebRTC();
             this.updateTransferStatus('Waiting for sender...');
-
         } catch (error) {
-            console.error('Failed to join room:', error);
-            this.showNotification('Failed to connect: ' + error.message, 'error');
-            this.updateTransferStatus('Connection failed: ' + error.message);
+            console.error('Join error:', error);
+            this.showNotification('Failed: ' + error.message, 'error');
+            this.updateTransferStatus('Connection failed');
         }
     }
 
@@ -403,8 +353,8 @@ class FileShare {
     }
 
     updateShareStatus(text) {
-        const statusTitle = document.querySelector('.status-title');
-        if (statusTitle) statusTitle.textContent = text;
+        const el = document.querySelector('.status-title');
+        if (el) el.textContent = text;
     }
 
     async initializeWebRTC() {
@@ -428,24 +378,20 @@ class FileShare {
 
         this.peerConnection = new RTCPeerConnection(config);
 
-        this.peerConnection.onicecandidate = (event) => {
-            if (event.candidate && this.socket && this.socket.connected) {
-                this.socket.emit('ice-candidate', {
-                    roomId: this.roomId,
-                    candidate: event.candidate
-                });
+        this.peerConnection.onicecandidate = (e) => {
+            if (e.candidate) {
+                this.send({ type: 'ice-candidate', roomId: this.roomId, candidate: e.candidate });
             }
         };
 
         this.peerConnection.onconnectionstatechange = () => {
-            console.log('Connection state:', this.peerConnection.connectionState);
-            if (this.peerConnection.connectionState === 'connected') {
-                this.showNotification('Connected! Ready to transfer.', 'success');
-                if (this.isHost) {
-                    this.updateShareStatus('Connected! Transfer starting...');
-                }
-            } else if (this.peerConnection.connectionState === 'failed') {
-                this.showNotification('Connection failed.', 'error');
+            const state = this.peerConnection.connectionState;
+            console.log('Connection state:', state);
+            if (state === 'connected') {
+                this.showNotification('Connected!', 'success');
+                if (this.isHost) this.updateShareStatus('Transfer starting...');
+            } else if (state === 'failed') {
+                this.showNotification('Connection failed', 'error');
             }
         };
 
@@ -453,8 +399,8 @@ class FileShare {
             this.dataChannel = this.peerConnection.createDataChannel('fileTransfer', { ordered: true });
             this.setupDataChannel();
         } else {
-            this.peerConnection.ondatachannel = (event) => {
-                this.dataChannel = event.channel;
+            this.peerConnection.ondatachannel = (e) => {
+                this.dataChannel = e.channel;
                 this.setupDataChannel();
             };
         }
@@ -464,40 +410,40 @@ class FileShare {
         try {
             const offer = await this.peerConnection.createOffer();
             await this.peerConnection.setLocalDescription(offer);
-            this.socket.emit('offer', { roomId: this.roomId, sdp: offer.sdp });
+            this.send({ type: 'offer', roomId: this.roomId, sdp: offer.sdp });
         } catch (error) {
-            console.error('Error creating offer:', error);
-            this.showNotification('Failed to establish connection', 'error');
+            console.error('Offer error:', error);
+            this.showNotification('Connection failed', 'error');
         }
     }
 
-    async handleOffer(data) {
+    async handleOffer(msg) {
         try {
-            await this.peerConnection.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: data.sdp }));
+            await this.peerConnection.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: msg.sdp }));
             const answer = await this.peerConnection.createAnswer();
             await this.peerConnection.setLocalDescription(answer);
-            this.socket.emit('answer', { roomId: this.roomId, sdp: answer.sdp });
-            this.updateTransferStatus('Connection established. Waiting for files...');
+            this.send({ type: 'answer', roomId: this.roomId, sdp: answer.sdp });
+            this.updateTransferStatus('Connected! Waiting for files...');
         } catch (error) {
-            console.error('Error handling offer:', error);
+            console.error('Offer handling error:', error);
         }
     }
 
-    async handleAnswer(data) {
+    async handleAnswer(msg) {
         try {
-            await this.peerConnection.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: data.sdp }));
+            await this.peerConnection.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: msg.sdp }));
         } catch (error) {
-            console.error('Error handling answer:', error);
+            console.error('Answer error:', error);
         }
     }
 
-    async handleIceCandidate(data) {
+    async handleIceCandidate(msg) {
         try {
-            if (data.candidate) {
-                await this.peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+            if (msg.candidate) {
+                await this.peerConnection.addIceCandidate(new RTCIceCandidate(msg.candidate));
             }
         } catch (error) {
-            console.error('Error adding ICE candidate:', error);
+            console.error('ICE error:', error);
         }
     }
 
@@ -505,7 +451,7 @@ class FileShare {
         this.dataChannel.binaryType = 'arraybuffer';
 
         this.dataChannel.onopen = () => {
-            console.log('Data channel opened');
+            console.log('Data channel open');
             if (this.isHost) {
                 this.showNotification('Starting transfer...', 'success');
                 this.startFileTransfer();
@@ -515,28 +461,28 @@ class FileShare {
         };
 
         this.dataChannel.onclose = () => console.log('Data channel closed');
-        this.dataChannel.onerror = (error) => {
-            console.error('Data channel error:', error);
+        this.dataChannel.onerror = (e) => {
+            console.error('Data channel error:', e);
             this.showNotification('Transfer error', 'error');
         };
 
-        this.dataChannel.onmessage = (event) => this.handleDataChannelMessage(event);
+        this.dataChannel.onmessage = (e) => this.handleDataChannelMessage(e);
     }
 
     handleDataChannelMessage(event) {
         if (typeof event.data === 'string') {
-            const message = JSON.parse(event.data);
+            const msg = JSON.parse(event.data);
 
-            if (message.type === 'file-info') {
-                this.receivedFileInfo = message;
+            if (msg.type === 'file-info') {
+                this.receivedFileInfo = msg;
                 this.receivedChunks = [];
                 this.totalBytesTransferred = 0;
                 this.transferStartTime = Date.now();
-                this.updateTransferStatus(`Receiving: ${message.name} (${message.currentIndex}/${message.totalFiles})`);
-                this.updateCurrentFileName(message.name);
-            } else if (message.type === 'file-complete') {
+                this.updateTransferStatus(`Receiving: ${msg.name} (${msg.currentIndex}/${msg.totalFiles})`);
+                this.updateCurrentFileName(msg.name);
+            } else if (msg.type === 'file-complete') {
                 this.assembleAndDownloadFile();
-            } else if (message.type === 'all-complete') {
+            } else if (msg.type === 'all-complete') {
                 this.updateTransferStatus('All files received!');
                 this.updateProgressBar(100);
                 this.showNotification('All files received!', 'success');
@@ -583,8 +529,7 @@ class FileShare {
             this.totalBytesTransferred = 0;
 
             const readNextChunk = () => {
-                const slice = file.slice(offset, offset + this.chunkSize);
-                reader.readAsArrayBuffer(slice);
+                reader.readAsArrayBuffer(file.slice(offset, offset + this.chunkSize));
             };
 
             reader.onload = (e) => {
@@ -598,8 +543,7 @@ class FileShare {
                     this.totalBytesTransferred = offset + e.target.result.byteLength;
                     offset += this.chunkSize;
 
-                    const progress = Math.round((Math.min(offset, file.size) / file.size) * 100);
-                    this.updateProgressBar(progress);
+                    this.updateProgressBar(Math.round((Math.min(offset, file.size) / file.size) * 100));
                     this.updateTransferSpeed(file.size);
 
                     if (offset < file.size) {
@@ -617,32 +561,28 @@ class FileShare {
     }
 
     updateProgressBar(percent) {
-        const progressFill = document.getElementById('progressFill');
-        const progressPercent = document.getElementById('progressPercent');
-        if (progressFill) progressFill.style.width = `${percent}%`;
-        if (progressPercent) progressPercent.textContent = `${percent}%`;
+        const fill = document.getElementById('progressFill');
+        const text = document.getElementById('progressPercent');
+        if (fill) fill.style.width = `${percent}%`;
+        if (text) text.textContent = `${percent}%`;
     }
 
     updateTransferSpeed(totalSize) {
-        const progressSpeed = document.getElementById('progressSpeed');
-        const transferredSize = document.getElementById('transferredSize');
-        const remainingSize = document.getElementById('remainingSize');
-        const timeLeft = document.getElementById('timeLeft');
-
         if (!this.transferStartTime) return;
-
         const elapsed = (Date.now() - this.transferStartTime) / 1000;
         const speed = this.totalBytesTransferred / elapsed;
 
-        if (progressSpeed) progressSpeed.textContent = `${this.formatFileSize(speed)}/s`;
-        if (transferredSize) transferredSize.textContent = this.formatFileSize(this.totalBytesTransferred);
-        if (remainingSize && totalSize) {
-            remainingSize.textContent = this.formatFileSize(Math.max(0, totalSize - this.totalBytesTransferred));
-        }
-        if (timeLeft && speed > 0 && totalSize) {
-            const secondsLeft = (totalSize - this.totalBytesTransferred) / speed;
-            if (secondsLeft < 60) timeLeft.textContent = `${Math.ceil(secondsLeft)}s`;
-            else timeLeft.textContent = `${Math.ceil(secondsLeft / 60)}m`;
+        const speedEl = document.getElementById('progressSpeed');
+        const transferredEl = document.getElementById('transferredSize');
+        const remainingEl = document.getElementById('remainingSize');
+        const timeEl = document.getElementById('timeLeft');
+
+        if (speedEl) speedEl.textContent = `${this.formatFileSize(speed)}/s`;
+        if (transferredEl) transferredEl.textContent = this.formatFileSize(this.totalBytesTransferred);
+        if (remainingEl) remainingEl.textContent = this.formatFileSize(Math.max(0, totalSize - this.totalBytesTransferred));
+        if (timeEl && speed > 0) {
+            const secs = (totalSize - this.totalBytesTransferred) / speed;
+            timeEl.textContent = secs < 60 ? `${Math.ceil(secs)}s` : `${Math.ceil(secs / 60)}m`;
         }
     }
 
@@ -653,14 +593,13 @@ class FileShare {
 
     updateProgress() {
         if (!this.receivedFileInfo) return;
-        const receivedSize = this.receivedChunks.reduce((sum, chunk) => sum + chunk.byteLength, 0);
-        const percent = Math.round((receivedSize / this.receivedFileInfo.size) * 100);
-        this.updateProgressBar(Math.min(percent, 100));
+        const received = this.receivedChunks.reduce((sum, c) => sum + c.byteLength, 0);
+        this.updateProgressBar(Math.min(Math.round((received / this.receivedFileInfo.size) * 100), 100));
         this.updateTransferSpeed(this.receivedFileInfo.size);
     }
 
     assembleAndDownloadFile() {
-        if (!this.receivedFileInfo || this.receivedChunks.length === 0) return;
+        if (!this.receivedFileInfo || !this.receivedChunks.length) return;
 
         const blob = new Blob(this.receivedChunks, { type: this.receivedFileInfo.mimeType || 'application/octet-stream' });
         const url = URL.createObjectURL(blob);
@@ -706,35 +645,21 @@ class FileShare {
     }
 }
 
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    window.fileShare = new FileShare();
-});
+document.addEventListener('DOMContentLoaded', () => { window.fileShare = new FileShare(); });
 
-// Notification styles
-const notificationStyles = document.createElement('style');
-notificationStyles.textContent = `
+const styles = document.createElement('style');
+styles.textContent = `
     .notification-toast {
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
+        position: fixed; bottom: 30px; left: 50%;
         transform: translateX(-50%) translateY(100px);
         background: rgba(30, 30, 30, 0.95);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        padding: 1rem 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        z-index: 10000;
-        backdrop-filter: blur(10px);
-        transition: transform 0.3s ease, opacity 0.3s ease;
-        opacity: 0;
+        border-radius: 12px; padding: 1rem 1.5rem;
+        display: flex; align-items: center; gap: 0.75rem;
+        z-index: 10000; backdrop-filter: blur(10px);
+        transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0;
     }
-    .notification-toast.show {
-        transform: translateX(-50%) translateY(0);
-        opacity: 1;
-    }
+    .notification-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     .notification-success { border-color: rgba(74, 222, 128, 0.3); }
     .notification-success .notification-icon { color: #4ade80; }
     .notification-error { border-color: rgba(239, 68, 68, 0.3); }
@@ -742,4 +667,4 @@ notificationStyles.textContent = `
     .notification-icon { font-size: 1.2rem; font-weight: bold; }
     .notification-message { color: rgba(255, 255, 255, 0.9); font-size: 0.95rem; }
 `;
-document.head.appendChild(notificationStyles);
+document.head.appendChild(styles);

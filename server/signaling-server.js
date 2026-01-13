@@ -1,18 +1,16 @@
-// Socket.IO Signaling Server for WebRTC P2P File Sharing
-// Uses Socket.IO for better compatibility (falls back to HTTP polling if WebSocket blocked)
+// WebSocket Signaling Server for WebRTC P2P File Sharing
+// Pure WebSocket for maximum performance
 
+const WebSocket = require('ws');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
-const { Server } = require('socket.io');
 
-// Configuration
 const PORT = process.env.PORT || 3000;
 const STATIC_DIR = path.join(__dirname, '..');
 
-// Create HTTP server for serving static files
+// HTTP server for static files
 const server = http.createServer((req, res) => {
-    // Add CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -23,25 +21,17 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // Health check endpoint
     if (req.url === '/health') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ status: 'ok', timestamp: Date.now() }));
         return;
     }
 
-    // Parse URL and remove query string
     let urlPath = req.url.split('?')[0];
+    let filePath = (urlPath === '/' || urlPath === '')
+        ? path.join(STATIC_DIR, 'index.html')
+        : path.join(STATIC_DIR, urlPath);
 
-    // Serve index.html for root
-    let filePath;
-    if (urlPath === '/' || urlPath === '') {
-        filePath = path.join(STATIC_DIR, 'index.html');
-    } else {
-        filePath = path.join(STATIC_DIR, urlPath);
-    }
-
-    const extname = path.extname(filePath);
     const contentTypes = {
         '.html': 'text/html',
         '.js': 'text/javascript',
@@ -54,198 +44,172 @@ const server = http.createServer((req, res) => {
         '.ico': 'image/x-icon'
     };
 
-    const contentType = contentTypes[extname] || 'application/octet-stream';
+    const ext = path.extname(filePath);
+    const contentType = contentTypes[ext] || 'application/octet-stream';
 
-    fs.stat(filePath, (statErr, stats) => {
-        if (statErr || stats.isDirectory()) {
+    fs.stat(filePath, (err, stats) => {
+        if (err || stats.isDirectory()) {
             fs.readFile(path.join(STATIC_DIR, 'index.html'), (err, content) => {
-                if (err) {
-                    res.writeHead(500);
-                    res.end('Server Error');
-                } else {
-                    res.writeHead(200, { 'Content-Type': 'text/html' });
-                    res.end(content, 'utf-8');
-                }
+                res.writeHead(err ? 500 : 200, { 'Content-Type': 'text/html' });
+                res.end(err ? 'Server Error' : content);
             });
         } else {
             fs.readFile(filePath, (err, content) => {
-                if (err) {
-                    res.writeHead(500);
-                    res.end('Server Error: ' + err.code);
-                } else {
-                    res.writeHead(200, { 'Content-Type': contentType });
-                    res.end(content, 'utf-8');
-                }
+                res.writeHead(err ? 500 : 200, { 'Content-Type': contentType });
+                res.end(err ? 'Server Error' : content);
             });
         }
     });
 });
 
-// Create Socket.IO server with CORS and polling fallback
-const io = new Server(server, {
-    cors: {
-        origin: '*',
-        methods: ['GET', 'POST']
-    },
-    transports: ['polling', 'websocket'], // Try polling first, then websocket
-    allowEIO3: true
-});
+// WebSocket server
+const wss = new WebSocket.Server({ server });
 
-// Store active rooms
+// Active rooms
 const rooms = new Map();
 
-// Clean up inactive rooms every 5 minutes
+// Cleanup inactive rooms every 5 minutes
 setInterval(() => {
     const now = Date.now();
     for (const [roomId, room] of rooms.entries()) {
         if (now - room.lastActivity > 30 * 60 * 1000) {
-            console.log(`Cleaning up inactive room: ${roomId}`);
+            console.log(`Cleanup: ${roomId}`);
             rooms.delete(roomId);
         }
     }
 }, 5 * 60 * 1000);
 
-// Socket.IO connection handler
-io.on('connection', (socket) => {
-    console.log(`New connection: ${socket.id} (transport: ${socket.conn.transport.name})`);
+wss.on('connection', (ws) => {
+    console.log('New WebSocket connection');
 
-    // Log when transport upgrades
-    socket.conn.on('upgrade', (transport) => {
-        console.log(`Connection ${socket.id} upgraded to: ${transport.name}`);
-    });
+    ws.isAlive = true;
+    ws.on('pong', () => { ws.isAlive = true; });
 
-    // Create room (host)
-    socket.on('create-room', (data) => {
-        const { roomId } = data;
-
-        if (rooms.has(roomId)) {
-            socket.emit('error', { message: 'Room already exists' });
-            return;
-        }
-
-        rooms.set(roomId, {
-            host: socket,
-            hostId: socket.id,
-            receiver: null,
-            receiverId: null,
-            lastActivity: Date.now()
-        });
-
-        socket.roomId = roomId;
-        socket.role = 'host';
-        socket.join(roomId);
-
-        socket.emit('room-created', { roomId });
-        console.log(`Room created: ${roomId} by ${socket.id}`);
-    });
-
-    // Join room (receiver)
-    socket.on('join-room', (data) => {
-        const { roomId } = data;
-        const room = rooms.get(roomId);
-
-        if (!room) {
-            socket.emit('error', { message: 'Room not found. The sender may have closed their browser.' });
-            return;
-        }
-
-        if (room.receiver) {
-            socket.emit('error', { message: 'Room is full.' });
-            return;
-        }
-
-        room.receiver = socket;
-        room.receiverId = socket.id;
-        room.lastActivity = Date.now();
-
-        socket.roomId = roomId;
-        socket.role = 'receiver';
-        socket.join(roomId);
-
-        socket.emit('room-joined', { roomId });
-
-        // Notify host
-        if (room.host) {
-            room.host.emit('peer-joined', { roomId });
-        }
-
-        console.log(`Receiver ${socket.id} joined room: ${roomId}`);
-    });
-
-    // Handle WebRTC signaling
-    socket.on('offer', (data) => {
-        const room = rooms.get(data.roomId);
-        if (room && room.receiver) {
-            room.lastActivity = Date.now();
-            room.receiver.emit('offer', data);
-            console.log(`Offer forwarded in room: ${data.roomId}`);
+    ws.on('message', (data) => {
+        try {
+            const msg = JSON.parse(data);
+            handleMessage(ws, msg);
+        } catch (e) {
+            console.error('Invalid message:', e.message);
         }
     });
 
-    socket.on('answer', (data) => {
-        const room = rooms.get(data.roomId);
-        if (room && room.host) {
-            room.lastActivity = Date.now();
-            room.host.emit('answer', data);
-            console.log(`Answer forwarded in room: ${data.roomId}`);
-        }
+    ws.on('close', () => {
+        console.log('Connection closed');
+        handleDisconnect(ws);
     });
 
-    socket.on('ice-candidate', (data) => {
-        const room = rooms.get(data.roomId);
-        if (room) {
-            room.lastActivity = Date.now();
-            // Forward to the other peer
-            if (socket.role === 'host' && room.receiver) {
-                room.receiver.emit('ice-candidate', data);
-            } else if (socket.role === 'receiver' && room.host) {
-                room.host.emit('ice-candidate', data);
-            }
-        }
-    });
-
-    // Handle disconnect
-    socket.on('disconnect', () => {
-        console.log(`Disconnected: ${socket.id}`);
-
-        if (!socket.roomId) return;
-
-        const room = rooms.get(socket.roomId);
-        if (!room) return;
-
-        if (socket.role === 'host') {
-            if (room.receiver) {
-                room.receiver.emit('peer-left', { message: 'Sender disconnected' });
-            }
-            rooms.delete(socket.roomId);
-            console.log(`Room closed: ${socket.roomId}`);
-        } else if (socket.role === 'receiver') {
-            room.receiver = null;
-            room.receiverId = null;
-            if (room.host) {
-                room.host.emit('peer-left', { message: 'Receiver disconnected' });
-            }
-        }
+    ws.on('error', (err) => {
+        console.error('WebSocket error:', err.message);
     });
 });
 
-// Start server
+// Heartbeat to detect dead connections
+setInterval(() => {
+    wss.clients.forEach((ws) => {
+        if (!ws.isAlive) return ws.terminate();
+        ws.isAlive = false;
+        ws.ping();
+    });
+}, 30000);
+
+function handleMessage(ws, msg) {
+    const { type, roomId } = msg;
+
+    switch (type) {
+        case 'create-room':
+            if (rooms.has(roomId)) {
+                send(ws, { type: 'error', message: 'Room exists' });
+                return;
+            }
+            rooms.set(roomId, {
+                host: ws,
+                receiver: null,
+                lastActivity: Date.now()
+            });
+            ws.roomId = roomId;
+            ws.role = 'host';
+            send(ws, { type: 'room-created', roomId });
+            console.log(`Room created: ${roomId}`);
+            break;
+
+        case 'join-room':
+            const room = rooms.get(roomId);
+            if (!room) {
+                send(ws, { type: 'error', message: 'Room not found' });
+                return;
+            }
+            if (room.receiver) {
+                send(ws, { type: 'error', message: 'Room full' });
+                return;
+            }
+            room.receiver = ws;
+            room.lastActivity = Date.now();
+            ws.roomId = roomId;
+            ws.role = 'receiver';
+            send(ws, { type: 'room-joined', roomId });
+            send(room.host, { type: 'peer-joined', roomId });
+            console.log(`Receiver joined: ${roomId}`);
+            break;
+
+        case 'offer':
+        case 'answer':
+        case 'ice-candidate':
+            forwardToOtherPeer(ws, msg);
+            break;
+    }
+}
+
+function forwardToOtherPeer(ws, msg) {
+    const room = rooms.get(msg.roomId);
+    if (!room) return;
+
+    room.lastActivity = Date.now();
+    const target = ws.role === 'host' ? room.receiver : room.host;
+
+    if (target && target.readyState === WebSocket.OPEN) {
+        send(target, msg);
+    }
+}
+
+function handleDisconnect(ws) {
+    if (!ws.roomId) return;
+
+    const room = rooms.get(ws.roomId);
+    if (!room) return;
+
+    if (ws.role === 'host') {
+        if (room.receiver) {
+            send(room.receiver, { type: 'peer-left', message: 'Sender disconnected' });
+        }
+        rooms.delete(ws.roomId);
+        console.log(`Room closed: ${ws.roomId}`);
+    } else {
+        room.receiver = null;
+        if (room.host) {
+            send(room.host, { type: 'peer-left', message: 'Receiver disconnected' });
+        }
+    }
+}
+
+function send(ws, data) {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(data));
+    }
+}
+
 server.listen(PORT, '0.0.0.0', () => {
     console.log('\n========================================');
-    console.log('  P2P File Sharing Server (Socket.IO)');
+    console.log('  P2P File Sharing (WebSocket)');
     console.log('========================================\n');
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Using Socket.IO with polling fallback\n`);
+    console.log(`Server: http://localhost:${PORT}`);
 
     const { networkInterfaces } = require('os');
     const nets = networkInterfaces();
-    console.log('Access the app at:');
-    console.log(`  Local:   http://localhost:${PORT}`);
-
     for (const name of Object.keys(nets)) {
         for (const net of nets[name]) {
             if (net.family === 'IPv4' && !net.internal) {
-                console.log(`  Network: http://${net.address}:${PORT}`);
+                console.log(`Network: http://${net.address}:${PORT}`);
             }
         }
     }
