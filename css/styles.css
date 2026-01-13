@@ -190,24 +190,24 @@ body {
     }
 }
 
-/* Rocket Icon */
-.rocket-icon {
+/* Rocket Emoji */
+.rocket-emoji {
     position: absolute;
+    right: -8px;
     top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-45deg);
-    color: var(--accent-green);
-    filter: drop-shadow(0 0 4px rgba(74, 222, 128, 0.6));
+    transform: translateY(-50%);
+    font-size: 14px;
+    filter: hue-rotate(80deg) saturate(1.5) brightness(1.1) drop-shadow(0 0 4px rgba(74, 222, 128, 0.6));
     animation: rocketPulse 2s ease-in-out infinite;
     z-index: 2;
 }
 
 @keyframes rocketPulse {
     0%, 100% {
-        filter: drop-shadow(0 0 4px rgba(74, 222, 128, 0.6));
+        filter: hue-rotate(80deg) saturate(1.5) brightness(1.1) drop-shadow(0 0 4px rgba(74, 222, 128, 0.6));
     }
     50% {
-        filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.9));
+        filter: hue-rotate(80deg) saturate(1.5) brightness(1.2) drop-shadow(0 0 8px rgba(74, 222, 128, 0.9));
     }
 }
 
