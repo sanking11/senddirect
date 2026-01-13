@@ -27,6 +27,26 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    // Proxy TURN credentials (keeps API key hidden)
+    if (req.url === '/api/turn-credentials') {
+        const https = require('https');
+        const apiKey = process.env.METERED_API_KEY || '4457e679138f5977f02878713ca2d91420e6';
+        const url = `https://senddirect.metered.live/api/v1/turn/credentials?apiKey=${apiKey}`;
+
+        https.get(url, (apiRes) => {
+            let data = '';
+            apiRes.on('data', chunk => data += chunk);
+            apiRes.on('end', () => {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(data);
+            });
+        }).on('error', (err) => {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Failed to fetch credentials' }));
+        });
+        return;
+    }
+
     let urlPath = req.url.split('?')[0];
     let filePath = (urlPath === '/' || urlPath === '')
         ? path.join(STATIC_DIR, 'index.html')

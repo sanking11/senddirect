@@ -396,10 +396,10 @@ class FileShare {
     }
 
     async initializeWebRTC() {
-        // Fetch TURN credentials from your Metered.ca account
+        // Fetch TURN credentials from server (API key hidden)
         let iceServers = [];
         try {
-            const response = await fetch('https://senddirect.metered.live/api/v1/turn/credentials?apiKey=4457e679138f5977f02878713ca2d91420e6');
+            const response = await fetch('/api/turn-credentials');
             iceServers = await response.json();
             console.log('TURN credentials loaded:', iceServers.length, 'servers');
         } catch (err) {
