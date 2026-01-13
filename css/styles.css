@@ -1710,11 +1710,15 @@ body {
     z-index: 100;
 }
 
+/* Hide shimmer on step cards by default */
+.step-card .shimmer-effect {
+    display: none;
+}
+
 .hero-card:hover .shimmer-effect,
 .share-link-section:hover .shimmer-effect,
 .transfer-section:hover .shimmer-effect,
-.feature-card:hover .shimmer-effect,
-.step-card:hover .shimmer-effect {
+.feature-card:hover .shimmer-effect {
     left: 150%;
 }
 
