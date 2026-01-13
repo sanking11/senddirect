@@ -15,6 +15,7 @@ class FileShare {
         this.chunkSize = 64 * 1024;
         this.transferStartTime = null;
         this.totalBytesTransferred = 0;
+        this.transferComplete = false; // Track if transfer finished successfully
 
         this.init();
     }
@@ -450,11 +451,19 @@ class FileShare {
             } else if (state === 'connected') {
                 this.showNotification('Connected!', 'success');
                 if (this.isHost) this.updateShareStatus('Transfer starting...');
-            } else if (state === 'failed') {
-                this.showNotification('P2P connection failed. Try refreshing both devices.', 'error');
-                this.updateTransferStatus('Connection failed - try again');
-            } else if (state === 'disconnected') {
-                this.updateTransferStatus('Connection interrupted...');
+            } else if (state === 'failed' || state === 'disconnected') {
+                // Only show error if transfer didn't complete successfully
+                if (this.transferComplete) {
+                    // Transfer was successful, connection closing is normal
+                    console.log('Connection closed after successful transfer');
+                } else {
+                    if (state === 'failed') {
+                        this.showNotification('P2P connection failed. Try refreshing both devices.', 'error');
+                        this.updateTransferStatus('Connection failed - try again');
+                    } else {
+                        this.updateTransferStatus('Connection interrupted...');
+                    }
+                }
             }
         };
 
@@ -463,7 +472,7 @@ class FileShare {
             console.log('ICE state:', state);
             if (state === 'checking') {
                 this.updateTransferStatus('Finding best connection path...');
-            } else if (state === 'failed') {
+            } else if (state === 'failed' && !this.transferComplete) {
                 this.showNotification('Network connection failed', 'error');
                 this.updateTransferStatus('Network error - check firewall');
             }
@@ -557,6 +566,7 @@ class FileShare {
             } else if (msg.type === 'file-complete') {
                 this.assembleAndDownloadFile();
             } else if (msg.type === 'all-complete') {
+                this.transferComplete = true; // Mark transfer as successful
                 this.updateTransferStatus('All files received!');
                 this.updateProgressBar(100);
                 this.showNotification('All files received!', 'success');
@@ -579,6 +589,7 @@ class FileShare {
         }
 
         this.dataChannel.send(JSON.stringify({ type: 'all-complete' }));
+        this.transferComplete = true; // Mark transfer as successful
         this.updateTransferStatus('All files sent!');
         this.updateProgressBar(100);
         this.showNotification('All files sent!', 'success');
