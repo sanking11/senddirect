@@ -635,16 +635,39 @@ body {
 }
 
 .qr-code {
-    width: 150px;
-    height: 150px;
-    background: white;
-    border-radius: 12px;
+    min-width: 180px;
+    min-height: 180px;
+    background: rgba(74, 222, 128, 0.05);
+    border-radius: 16px;
     margin: 0 auto 0.75rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--bg-primary);
-    font-size: 0.8rem;
+    padding: 10px;
+    border: 1px solid rgba(74, 222, 128, 0.2);
+    box-shadow: 0 0 30px rgba(74, 222, 128, 0.15);
+}
+
+.qr-animated {
+    filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.4));
+}
+
+.qr-dot {
+    opacity: 0;
+    filter: drop-shadow(0 0 2px rgba(74, 222, 128, 0.8));
+}
+
+.qr-animated:hover .qr-dot {
+    animation: qrPulse 2s ease-in-out infinite;
+}
+
+@keyframes qrPulse {
+    0%, 100% {
+        filter: drop-shadow(0 0 2px rgba(74, 222, 128, 0.8));
+    }
+    50% {
+        filter: drop-shadow(0 0 6px rgba(74, 222, 128, 1));
+    }
 }
 
 .qr-hint {

@@ -350,8 +350,54 @@ class FileShare {
     generateQRCode(link) {
         const qrContainer = document.getElementById('qrCode');
         if (!qrContainer) return;
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(link)}&bgcolor=1a1a1a&color=ffffff`;
-        qrContainer.innerHTML = `<img src="${qrUrl}" alt="QR Code" style="border-radius: 8px;">`;
+
+        // Use local QR code generator (instant)
+        const qr = qrcode(0, 'M');
+        qr.addData(link);
+        qr.make();
+
+        const moduleCount = qr.getModuleCount();
+        const cellSize = 5;
+        const size = moduleCount * cellSize;
+        const padding = 15;
+        const totalSize = size + padding * 2;
+
+        // Create SVG with animated dots
+        let svg = `<svg width="${totalSize}" height="${totalSize}" viewBox="0 0 ${totalSize} ${totalSize}" class="qr-animated">`;
+        svg += `<rect width="100%" height="100%" fill="rgba(255,255,255,0.1)" rx="12"/>`;
+
+        let dotIndex = 0;
+        for (let row = 0; row < moduleCount; row++) {
+            for (let col = 0; col < moduleCount; col++) {
+                if (qr.isDark(row, col)) {
+                    const x = padding + col * cellSize + cellSize / 2;
+                    const y = padding + row * cellSize + cellSize / 2;
+                    const delay = (dotIndex * 5) % 500;
+                    const isCorner = this.isQRCorner(row, col, moduleCount);
+                    const radius = isCorner ? cellSize / 2 : cellSize / 2.5;
+
+                    svg += `<circle cx="${x}" cy="${y}" r="${radius}" fill="#4ade80" class="qr-dot" style="animation-delay: ${delay}ms">`;
+                    svg += `<animate attributeName="opacity" values="0;1;1" dur="0.5s" begin="${delay}ms" fill="freeze"/>`;
+                    svg += `</circle>`;
+                    dotIndex++;
+                }
+            }
+        }
+
+        svg += `</svg>`;
+        qrContainer.innerHTML = svg;
+    }
+
+    isQRCorner(row, col, size) {
+        // Check if dot is part of the three corner finder patterns
+        const cornerSize = 7;
+        // Top-left
+        if (row < cornerSize && col < cornerSize) return true;
+        // Top-right
+        if (row < cornerSize && col >= size - cornerSize) return true;
+        // Bottom-left
+        if (row >= size - cornerSize && col < cornerSize) return true;
+        return false;
     }
 
     async copyShareLink() {
