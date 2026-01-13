@@ -400,15 +400,24 @@ class FileShare {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' },
+                // OpenRelay free TURN servers
                 {
-                    urls: 'turn:a.relay.metered.ca:80',
-                    username: 'e8dd65c92f6ec4ee0c991153',
-                    credential: 'uWdEpQ1hHqXY3M2q'
+                    urls: 'turn:openrelay.metered.ca:80',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
                 },
                 {
-                    urls: 'turn:a.relay.metered.ca:443?transport=tcp',
-                    username: 'e8dd65c92f6ec4ee0c991153',
-                    credential: 'uWdEpQ1hHqXY3M2q'
+                    urls: 'turn:openrelay.metered.ca:443',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
                 }
             ],
             iceCandidatePoolSize: 10
@@ -425,11 +434,27 @@ class FileShare {
         this.peerConnection.onconnectionstatechange = () => {
             const state = this.peerConnection.connectionState;
             console.log('Connection state:', state);
-            if (state === 'connected') {
+            if (state === 'connecting') {
+                this.updateTransferStatus('Establishing P2P connection...');
+            } else if (state === 'connected') {
                 this.showNotification('Connected!', 'success');
                 if (this.isHost) this.updateShareStatus('Transfer starting...');
             } else if (state === 'failed') {
-                this.showNotification('Connection failed', 'error');
+                this.showNotification('P2P connection failed. Try refreshing both devices.', 'error');
+                this.updateTransferStatus('Connection failed - try again');
+            } else if (state === 'disconnected') {
+                this.updateTransferStatus('Connection interrupted...');
+            }
+        };
+
+        this.peerConnection.oniceconnectionstatechange = () => {
+            const state = this.peerConnection.iceConnectionState;
+            console.log('ICE state:', state);
+            if (state === 'checking') {
+                this.updateTransferStatus('Finding best connection path...');
+            } else if (state === 'failed') {
+                this.showNotification('Network connection failed', 'error');
+                this.updateTransferStatus('Network error - check firewall');
             }
         };
 
