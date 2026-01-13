@@ -165,7 +165,8 @@ class FileShare {
 
     getWebSocketUrl() {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        return `${protocol}//${window.location.host}`;
+        // Add explicit /ws path for better compatibility
+        return `${protocol}//${window.location.host}/ws`;
     }
 
     connectToServer(retries = 3) {

@@ -62,8 +62,8 @@ const server = http.createServer((req, res) => {
     });
 });
 
-// WebSocket server
-const wss = new WebSocket.Server({ server });
+// WebSocket server with explicit path for Safari compatibility
+const wss = new WebSocket.Server({ server, path: '/ws' });
 
 // Active rooms
 const rooms = new Map();
