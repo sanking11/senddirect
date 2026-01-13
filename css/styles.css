@@ -1034,28 +1034,7 @@ body {
 }
 
 .footer-border-animated {
-    position: absolute;
-    inset: 0;
-    border-radius: 16px;
-    padding: 2px;
-    background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(74, 222, 128, 0.3) 25%,
-        rgba(74, 222, 128, 0.6) 50%,
-        rgba(74, 222, 128, 0.3) 75%,
-        transparent 100%
-    );
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    animation: borderMove 3s linear infinite;
-    background-size: 200% 100%;
-}
-
-@keyframes borderMove {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+    display: none;
 }
 
 .footer-glow {
@@ -1278,29 +1257,6 @@ body {
    FUTURISTIC EFFECTS & OVERLAYS
    ======================================== */
 
-/* Scan Line Effect - More Visible */
-.scan-line {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(74, 222, 128, 0.4) 20%,
-        rgba(74, 222, 128, 0.8) 50%,
-        rgba(74, 222, 128, 0.4) 80%,
-        transparent 100%);
-    box-shadow: 0 0 10px rgba(74, 222, 128, 0.5), 0 0 20px rgba(74, 222, 128, 0.3);
-    z-index: 9999;
-    pointer-events: none;
-    animation: scanLine 3s linear infinite;
-}
-
-@keyframes scanLine {
-    0% { transform: translateY(-100%); }
-    100% { transform: translateY(100vh); }
-}
 
 /* Grid Overlay - Visible cyberpunk grid */
 .grid-overlay {
