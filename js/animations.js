@@ -86,11 +86,13 @@ function initParticleCanvas() {
             this.x = Math.random() * width;
             this.y = Math.random() * height;
             this.size = Math.random() * 2 + 0.5;
-            this.speedX = (Math.random() - 0.5) * 0.5;
-            this.speedY = (Math.random() - 0.5) * 0.5;
-            this.opacity = Math.random() * 0.5 + 0.1;
+            this.speedX = (Math.random() - 0.5) * 0.6;
+            this.speedY = (Math.random() - 0.5) * 0.6;
+            this.opacity = Math.random() * 0.6 + 0.3;
             this.pulseSpeed = Math.random() * 0.02 + 0.01;
             this.pulseOffset = Math.random() * Math.PI * 2;
+            // Some particles are green, some are white
+            this.isGreen = Math.random() > 0.5;
         }
 
         update(time) {
@@ -98,7 +100,7 @@ function initParticleCanvas() {
             this.y += this.speedY;
 
             // Pulse opacity
-            this.currentOpacity = this.opacity + Math.sin(time * this.pulseSpeed + this.pulseOffset) * 0.2;
+            this.currentOpacity = this.opacity + Math.sin(time * this.pulseSpeed + this.pulseOffset) * 0.25;
 
             // Wrap around edges
             if (this.x < 0) this.x = width;
@@ -110,7 +112,11 @@ function initParticleCanvas() {
         draw() {
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, this.currentOpacity)})`;
+            if (this.isGreen) {
+                ctx.fillStyle = `rgba(74, 222, 128, ${Math.max(0, this.currentOpacity)})`;
+            } else {
+                ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, this.currentOpacity)})`;
+            }
             ctx.fill();
         }
     }
@@ -130,13 +136,14 @@ function initParticleCanvas() {
                 const dy = particles[i].y - particles[j].y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
-                if (distance < 120) {
-                    const opacity = (1 - distance / 120) * 0.12;
+                if (distance < 150) {
+                    const opacity = (1 - distance / 150) * 0.25;
                     ctx.beginPath();
                     ctx.moveTo(particles[i].x, particles[i].y);
                     ctx.lineTo(particles[j].x, particles[j].y);
-                    ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
-                    ctx.lineWidth = 0.5;
+                    // Green connection lines
+                    ctx.strokeStyle = `rgba(74, 222, 128, ${opacity})`;
+                    ctx.lineWidth = 1;
                     ctx.stroke();
                 }
             }
