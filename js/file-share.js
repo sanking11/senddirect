@@ -334,6 +334,8 @@ class FileShare {
             case 'peer-joined':
                 this.showNotification('Receiver connected!', 'success');
                 this.updateShareStatus('Establishing connection...');
+                // Scroll to transfer section when peer connects
+                this.scrollToTransferSection();
                 await this.createAndSendOffer();
                 break;
 
@@ -392,7 +394,7 @@ class FileShare {
             if (shareLinkSection && shareLink) {
                 // Use clean URL without index.html
                 const basePath = window.location.pathname.replace(/index\.html$/, '');
-                const link = `${window.location.origin}${basePath}?room=${this.roomId}`;
+                const link = `${window.location.origin}${basePath}?Q-Gate=${this.roomId}`;
                 shareLink.value = link;
                 shareLinkSection.style.display = 'block';
 
@@ -526,7 +528,8 @@ class FileShare {
         }
 
         svg += `</svg>`;
-        qrContainer.innerHTML = svg;
+        // Add scanning line for futuristic effect
+        qrContainer.innerHTML = svg + '<div class="scan-line"></div>';
     }
 
     isQRCorner(row, col, size) {
@@ -546,11 +549,21 @@ class FileShare {
         if (!shareLink) return;
         try {
             await navigator.clipboard.writeText(shareLink.value);
-            this.showNotification('Link copied!', 'success');
+            this.showNotification('Link copied! Waiting for receiver...', 'success');
         } catch (err) {
             shareLink.select();
             document.execCommand('copy');
-            this.showNotification('Link copied!', 'success');
+            this.showNotification('Link copied! Waiting for receiver...', 'success');
+        }
+    }
+
+    scrollToTransferSection() {
+        const transferSection = document.getElementById('transferSection');
+        if (transferSection) {
+            transferSection.style.display = 'block';
+            setTimeout(() => {
+                transferSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
         }
     }
 

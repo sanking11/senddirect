@@ -852,17 +852,124 @@ body {
 }
 
 .qr-code {
-    min-width: 180px;
-    min-height: 180px;
-    background: rgba(74, 222, 128, 0.05);
-    border-radius: 16px;
+    min-width: 200px;
+    min-height: 200px;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(74, 222, 128, 0.05) 100%);
+    border-radius: 4px;
     margin: 0 auto 0.75rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 10px;
-    border: 1px solid rgba(74, 222, 128, 0.2);
-    box-shadow: 0 0 30px rgba(74, 222, 128, 0.15);
+    padding: 15px;
+    position: relative;
+    box-shadow:
+        0 0 40px rgba(74, 222, 128, 0.2),
+        inset 0 0 30px rgba(74, 222, 128, 0.05);
+}
+
+/* Futuristic corner brackets */
+.qr-code::before,
+.qr-code::after {
+    content: '';
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border: 2px solid #4ade80;
+    box-shadow: 0 0 10px rgba(74, 222, 128, 0.6);
+}
+
+.qr-code::before {
+    top: 8px;
+    left: 8px;
+    border-right: none;
+    border-bottom: none;
+    animation: cornerPulse 2s ease-in-out infinite;
+}
+
+.qr-code::after {
+    bottom: 8px;
+    right: 8px;
+    border-left: none;
+    border-top: none;
+    animation: cornerPulse 2s ease-in-out infinite 1s;
+}
+
+/* Additional corner brackets using wrapper */
+.qr-code-section {
+    position: relative;
+}
+
+.qr-code-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.qr-code-wrapper::before,
+.qr-code-wrapper::after {
+    content: '';
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border: 2px solid #4ade80;
+    box-shadow: 0 0 10px rgba(74, 222, 128, 0.6);
+    z-index: 2;
+}
+
+.qr-code-wrapper::before {
+    top: 8px;
+    right: 8px;
+    border-left: none;
+    border-bottom: none;
+    animation: cornerPulse 2s ease-in-out infinite 0.5s;
+}
+
+.qr-code-wrapper::after {
+    bottom: 8px;
+    left: 8px;
+    border-right: none;
+    border-top: none;
+    animation: cornerPulse 2s ease-in-out infinite 1.5s;
+}
+
+@keyframes cornerPulse {
+    0%, 100% {
+        opacity: 0.6;
+        box-shadow: 0 0 10px rgba(74, 222, 128, 0.4);
+    }
+    50% {
+        opacity: 1;
+        box-shadow: 0 0 20px rgba(74, 222, 128, 0.8);
+    }
+}
+
+/* Scanning line animation */
+.qr-code .scan-line {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #4ade80, transparent);
+    box-shadow: 0 0 15px rgba(74, 222, 128, 0.8);
+    animation: scanLine 2s ease-in-out infinite;
+    z-index: 10;
+}
+
+@keyframes scanLine {
+    0%, 100% {
+        top: 10px;
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        top: calc(100% - 10px);
+        opacity: 0;
+    }
 }
 
 /* QR Loading Animation */
@@ -874,13 +981,42 @@ body {
 }
 
 .qr-spinner {
-    width: 60px;
-    height: 60px;
-    border: 3px solid rgba(74, 222, 128, 0.2);
+    width: 70px;
+    height: 70px;
+    border: 3px solid rgba(74, 222, 128, 0.15);
     border-top: 3px solid #4ade80;
     border-radius: 50%;
     animation: qrSpin 1s linear infinite;
-    box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
+    box-shadow:
+        0 0 30px rgba(74, 222, 128, 0.4),
+        inset 0 0 20px rgba(74, 222, 128, 0.1);
+    position: relative;
+}
+
+.qr-spinner::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    bottom: 5px;
+    border: 2px solid rgba(74, 222, 128, 0.1);
+    border-bottom: 2px solid #4ade80;
+    border-radius: 50%;
+    animation: qrSpin 0.8s linear infinite reverse;
+}
+
+.qr-spinner::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    bottom: 15px;
+    border: 1px solid rgba(74, 222, 128, 0.2);
+    border-left: 1px solid #4ade80;
+    border-radius: 50%;
+    animation: qrSpin 0.6s linear infinite;
 }
 
 @keyframes qrSpin {
@@ -892,15 +1028,19 @@ body {
     font-family: 'Orbitron', sans-serif;
     font-size: 0.75rem;
     color: #4ade80;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
     text-align: center;
     transition: opacity 0.2s ease-in-out;
-    text-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+    text-shadow: 0 0 15px rgba(74, 222, 128, 0.7);
+    padding: 8px 16px;
+    background: rgba(74, 222, 128, 0.1);
+    border: 1px solid rgba(74, 222, 128, 0.3);
+    border-radius: 4px;
 }
 
 .qr-animated {
-    filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.4));
+    filter: drop-shadow(0 0 12px rgba(74, 222, 128, 0.5));
 }
 
 .qr-dot {
@@ -917,13 +1057,23 @@ body {
         filter: drop-shadow(0 0 2px rgba(74, 222, 128, 0.8));
     }
     50% {
-        filter: drop-shadow(0 0 6px rgba(74, 222, 128, 1));
+        filter: drop-shadow(0 0 8px rgba(74, 222, 128, 1));
     }
 }
 
 .qr-hint {
-    font-size: 0.85rem;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem;
     color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* QR code image styling */
+.qr-code img,
+.qr-code table {
+    filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.4));
+    border-radius: 4px;
 }
 
 .transfer-warning {
@@ -940,11 +1090,15 @@ body {
     animation: warningGlow 2s ease-in-out infinite;
 }
 
-.transfer-warning svg {
-    width: 20px;
-    height: 20px;
+.transfer-warning .warning-icon {
+    font-size: 1.5rem;
     flex-shrink: 0;
-    animation: warningIconPulse 1.5s ease-in-out infinite;
+    animation: warningIconPulse 1s ease-in-out infinite;
+    filter: drop-shadow(0 0 5px rgba(248, 113, 113, 0.8));
+}
+
+.transfer-warning .warning-text {
+    animation: warningTextFlash 1s ease-in-out infinite;
 }
 
 @keyframes warningGlow {
@@ -961,9 +1115,20 @@ body {
 @keyframes warningIconPulse {
     0%, 100% {
         transform: scale(1);
+        opacity: 1;
     }
     50% {
-        transform: scale(1.15);
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
+}
+
+@keyframes warningTextFlash {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
     }
 }
 
@@ -1750,61 +1915,59 @@ body {
     z-index: 2;
 }
 
-/* Gyroscope-style multi-ring orbital system */
+/* Orbital rings */
 .orbital-ring {
     position: absolute;
     top: 50%;
     left: 50%;
     width: 140%;
     height: 140%;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+    animation: orbitalSpin1 3s linear infinite;
+    transform-origin: center center;
+}
+
+.orbital-ring-2 {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 150%;
+    height: 150%;
     border: 1.5px solid rgba(255, 255, 255, 0.4);
     border-radius: 50%;
-    transform: translate(-50%, -50%) rotateX(70deg);
-    animation: orbitalSpin1 4s linear infinite;
-    transform-style: preserve-3d;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.2);
+    animation: orbitalSpin2 4s linear infinite;
+    transform-origin: center center;
 }
 
-/* Second ring - horizontal tilt */
-.orbital-ring::before {
-    content: '';
+.orbital-ring-3 {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 100%;
-    height: 100%;
-    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    width: 160%;
+    height: 160%;
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
-    transform: translate(-50%, -50%) rotateY(70deg);
-    animation: orbitalSpin2 5s linear infinite reverse;
-}
-
-/* Third ring - diagonal tilt */
-.orbital-ring::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 85%;
-    height: 85%;
-    border: 1.5px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    transform: translate(-50%, -50%) rotateX(30deg) rotateY(45deg);
-    animation: orbitalSpin3 6s linear infinite;
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.15);
+    animation: orbitalSpin3 5s linear infinite;
+    transform-origin: center center;
 }
 
 @keyframes orbitalSpin1 {
-    from { transform: translate(-50%, -50%) rotateX(70deg) rotateZ(0deg); }
-    to { transform: translate(-50%, -50%) rotateX(70deg) rotateZ(360deg); }
+    0% { transform: translate(-50%, -50%) rotateY(0deg) rotateX(60deg); }
+    100% { transform: translate(-50%, -50%) rotateY(360deg) rotateX(60deg); }
 }
 
 @keyframes orbitalSpin2 {
-    from { transform: translate(-50%, -50%) rotateY(70deg) rotateZ(0deg); }
-    to { transform: translate(-50%, -50%) rotateY(70deg) rotateZ(360deg); }
+    0% { transform: translate(-50%, -50%) rotateY(0deg) rotateX(75deg) rotateZ(45deg); }
+    100% { transform: translate(-50%, -50%) rotateY(-360deg) rotateX(75deg) rotateZ(45deg); }
 }
 
 @keyframes orbitalSpin3 {
-    from { transform: translate(-50%, -50%) rotateX(30deg) rotateY(45deg) rotateZ(0deg); }
-    to { transform: translate(-50%, -50%) rotateX(30deg) rotateY(45deg) rotateZ(360deg); }
+    0% { transform: translate(-50%, -50%) rotateX(0deg) rotateZ(30deg); }
+    100% { transform: translate(-50%, -50%) rotateX(360deg) rotateZ(30deg); }
 }
 
 @keyframes spin {
