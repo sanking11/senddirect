@@ -438,6 +438,8 @@ class FileShare {
             'Stabilizing wormhole...',
             'Entangling particles...',
             'Calibrating tunnel coordinates...',
+            'Locking dimensional rift...',
+            'Synchronizing timelines...',
             'Quantum link established!'
         ];
 
@@ -450,25 +452,40 @@ class FileShare {
         `;
         if (qrHint) qrHint.style.opacity = '0';
 
-        // Cycle through status messages
+        // Cycle through status messages (slower - 1 second per message)
         let messageIndex = 0;
         const statusInterval = setInterval(() => {
             messageIndex++;
             const statusText = qrContainer.querySelector('.qr-status-text');
             if (statusText && messageIndex < statusMessages.length - 1) {
-                statusText.textContent = statusMessages[messageIndex];
+                statusText.style.opacity = '0';
+                setTimeout(() => {
+                    statusText.textContent = statusMessages[messageIndex];
+                    statusText.style.opacity = '1';
+                }, 200);
             }
-        }, 600);
+        }, 1000);
 
-        // After delay, show the actual QR code
+        // After delay, show the actual QR code (8 seconds total for all messages)
         setTimeout(() => {
             clearInterval(statusInterval);
-            this.generateQRCode(link);
-            if (qrHint) {
-                qrHint.style.opacity = '1';
-                qrHint.style.transition = 'opacity 0.5s ease';
+            const statusText = qrContainer.querySelector('.qr-status-text');
+            if (statusText) {
+                statusText.style.opacity = '0';
+                setTimeout(() => {
+                    statusText.textContent = statusMessages[statusMessages.length - 1];
+                    statusText.style.opacity = '1';
+                }, 200);
             }
-        }, 3000);
+            // Show QR code after final message
+            setTimeout(() => {
+                this.generateQRCode(link);
+                if (qrHint) {
+                    qrHint.style.opacity = '1';
+                    qrHint.style.transition = 'opacity 0.5s ease';
+                }
+            }, 1000);
+        }, 7000);
     }
 
     generateQRCode(link) {

@@ -895,12 +895,8 @@ body {
     letter-spacing: 0.1em;
     text-transform: uppercase;
     text-align: center;
-    animation: statusFade 0.5s ease-in-out;
-}
-
-@keyframes statusFade {
-    0% { opacity: 0; transform: translateY(5px); }
-    100% { opacity: 1; transform: translateY(0); }
+    transition: opacity 0.2s ease-in-out;
+    text-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
 }
 
 .qr-animated {
