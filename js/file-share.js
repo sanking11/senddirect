@@ -16,6 +16,8 @@ class FileShare {
         this.transferStartTime = null;
         this.totalBytesTransferred = 0;
         this.transferComplete = false; // Track if transfer finished successfully
+        this.wakeLock = null;
+        this.webLock = null;
 
         this.init();
     }
@@ -23,6 +25,61 @@ class FileShare {
     init() {
         this.bindEvents();
         this.checkUrlForRoom();
+        this.setupBackgroundSupport();
+    }
+
+    // Keep transfer running when browser is minimized
+    setupBackgroundSupport() {
+        // Handle visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && this.isTransferring()) {
+                this.acquireWakeLock();
+            }
+        });
+    }
+
+    isTransferring() {
+        return this.dataChannel && this.dataChannel.readyState === 'open' && !this.transferComplete;
+    }
+
+    // Request wake lock to prevent device sleep during transfer
+    async acquireWakeLock() {
+        if ('wakeLock' in navigator) {
+            try {
+                this.wakeLock = await navigator.wakeLock.request('screen');
+                console.log('Wake lock acquired for background transfer');
+
+                this.wakeLock.addEventListener('release', () => {
+                    console.log('Wake lock released');
+                });
+            } catch (err) {
+                console.log('Wake lock not available:', err.message);
+            }
+        }
+    }
+
+    releaseWakeLock() {
+        if (this.wakeLock) {
+            this.wakeLock.release();
+            this.wakeLock = null;
+        }
+    }
+
+    // Acquire Web Lock to prevent tab from being discarded
+    async acquireWebLock() {
+        if ('locks' in navigator) {
+            try {
+                navigator.locks.request('file-transfer-lock', { mode: 'exclusive' }, async (lock) => {
+                    console.log('Web lock acquired - transfer protected');
+                    // Hold the lock until transfer completes
+                    await new Promise((resolve) => {
+                        this.releaseWebLock = resolve;
+                    });
+                });
+            } catch (err) {
+                console.log('Web lock not available:', err.message);
+            }
+        }
     }
 
     bindEvents() {
@@ -55,6 +112,9 @@ class FileShare {
         this.updateFilesList();
         this.hideSelectedFiles();
         this.updateShareButton();
+        // Resume stripe animation when files cleared
+        const dropZone = document.getElementById('dropZone');
+        if (dropZone) dropZone.classList.remove('has-files');
     }
 
     handleDragOver(e) { e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.add('drag-over'); }
@@ -74,13 +134,23 @@ class FileShare {
         this.updateFilesList();
         this.showSelectedFiles();
         this.updateShareButton();
+        // Stop stripe animation when files are added
+        const dropZone = document.getElementById('dropZone');
+        if (dropZone && this.files.length > 0) {
+            dropZone.classList.add('has-files');
+        }
     }
 
     removeFile(index) {
         this.files.splice(index, 1);
         this.updateFilesList();
         this.updateShareButton();
-        if (this.files.length === 0) this.hideSelectedFiles();
+        if (this.files.length === 0) {
+            this.hideSelectedFiles();
+            // Resume stripe animation when all files removed
+            const dropZone = document.getElementById('dropZone');
+            if (dropZone) dropZone.classList.remove('has-files');
+        }
     }
 
     updateShareButton() {
@@ -323,7 +393,14 @@ class FileShare {
                 const link = `${window.location.origin}${window.location.pathname}?room=${this.roomId}`;
                 shareLink.value = link;
                 shareLinkSection.style.display = 'block';
-                this.generateQRCode(link);
+
+                // Smooth scroll to share link section
+                setTimeout(() => {
+                    shareLinkSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+
+                // Animated QR code generation with status messages
+                this.generateAnimatedQRCode(link);
             }
 
             await this.initializeWebRTC();
@@ -345,6 +422,51 @@ class FileShare {
                 this.send({ type: 'ping' });
             }
         }, 25000);
+    }
+
+    generateAnimatedQRCode(link) {
+        const qrContainer = document.getElementById('qrCode');
+        const qrHint = document.querySelector('.qr-hint');
+        if (!qrContainer) return;
+
+        // Quantum status messages
+        const statusMessages = [
+            'Initializing quantum state...',
+            'Merging qubits...',
+            'Stabilizing wormhole...',
+            'Entangling particles...',
+            'Calibrating tunnel coordinates...',
+            'Quantum link established!'
+        ];
+
+        // Show loading animation first
+        qrContainer.innerHTML = `
+            <div class="qr-loading">
+                <div class="qr-spinner"></div>
+                <div class="qr-status-text">${statusMessages[0]}</div>
+            </div>
+        `;
+        if (qrHint) qrHint.style.opacity = '0';
+
+        // Cycle through status messages
+        let messageIndex = 0;
+        const statusInterval = setInterval(() => {
+            messageIndex++;
+            const statusText = qrContainer.querySelector('.qr-status-text');
+            if (statusText && messageIndex < statusMessages.length - 1) {
+                statusText.textContent = statusMessages[messageIndex];
+            }
+        }, 600);
+
+        // After delay, show the actual QR code
+        setTimeout(() => {
+            clearInterval(statusInterval);
+            this.generateQRCode(link);
+            if (qrHint) {
+                qrHint.style.opacity = '1';
+                qrHint.style.transition = 'opacity 0.5s ease';
+            }
+        }, 3000);
     }
 
     generateQRCode(link) {
@@ -598,11 +720,16 @@ class FileShare {
         this.dataChannel.onmessage = (e) => this.handleDataChannelMessage(e);
     }
 
-    handleDataChannelMessage(event) {
+    async handleDataChannelMessage(event) {
         if (typeof event.data === 'string') {
             const msg = JSON.parse(event.data);
 
             if (msg.type === 'file-info') {
+                // Acquire locks when receiving starts (first file)
+                if (msg.currentIndex === 1) {
+                    await this.acquireWakeLock();
+                    await this.acquireWebLock();
+                }
                 this.receivedFileInfo = msg;
                 this.receivedChunks = [];
                 this.totalBytesTransferred = 0;
@@ -616,6 +743,9 @@ class FileShare {
                 this.updateTransferStatus('All files received!');
                 this.updateProgressBar(100);
                 this.showNotification('All files received!', 'success');
+                // Release locks after transfer complete
+                this.releaseWakeLock();
+                if (this.releaseWebLock) this.releaseWebLock();
             }
         } else {
             this.receivedChunks.push(event.data);
@@ -628,6 +758,10 @@ class FileShare {
         const transferSection = document.getElementById('transferSection');
         if (transferSection) transferSection.style.display = 'block';
 
+        // Acquire locks to keep transfer running in background
+        await this.acquireWakeLock();
+        await this.acquireWebLock();
+
         this.transferStartTime = Date.now();
 
         for (let i = 0; i < this.files.length; i++) {
@@ -639,6 +773,10 @@ class FileShare {
         this.updateTransferStatus('All files sent!');
         this.updateProgressBar(100);
         this.showNotification('All files sent!', 'success');
+
+        // Release locks after transfer complete
+        this.releaseWakeLock();
+        if (this.releaseWebLock) this.releaseWebLock();
     }
 
     async sendFile(file, currentIndex, totalFiles) {
