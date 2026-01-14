@@ -390,7 +390,9 @@ class FileShare {
             const shareLink = document.getElementById('shareLink');
 
             if (shareLinkSection && shareLink) {
-                const link = `${window.location.origin}${window.location.pathname}?room=${this.roomId}`;
+                // Use clean URL without index.html
+                const basePath = window.location.pathname.replace(/index\.html$/, '');
+                const link = `${window.location.origin}${basePath}?room=${this.roomId}`;
                 shareLink.value = link;
                 shareLinkSection.style.display = 'block';
 

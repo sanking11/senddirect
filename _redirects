@@ -1,0 +1,5 @@
+# Remove index.html from URLs
+/index.html  /  301
+
+# Handle SPA routing - serve index.html for all routes
+/*  /index.html  200
