@@ -5,9 +5,9 @@
 }
 
 :root {
-    --bg-primary: #5f6d78;
-    --bg-secondary: #6b7a87;
-    --bg-tertiary: #536270;
+    --bg-primary: #3a454f;
+    --bg-secondary: #4a5661;
+    --bg-tertiary: #2d3840;
     --text-primary: #ffffff;
     --text-secondary: rgba(255, 255, 255, 0.7);
     --text-muted: rgba(255, 255, 255, 0.5);
@@ -22,7 +22,7 @@
 
 body {
     font-family: 'Exo 2', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: var(--bg-primary);
+    background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-primary) 50%, var(--bg-secondary) 100%);
     color: var(--text-primary);
     min-height: 100vh;
     overflow-x: hidden;
@@ -107,6 +107,9 @@ body {
     font-weight: 700;
     font-size: 1.1rem;
     position: relative;
+    overflow: visible;
+    transform-style: preserve-3d;
+    perspective: 200px;
 }
 
 /* Orbiting UFO Discs - Subtle background */
@@ -189,55 +192,6 @@ body {
     }
     100% {
         transform: translate(-28px, 28px) rotate(-5deg);
-    }
-}
-
-/* Rotating Ring around S */
-.orbital-ring {
-    position: absolute;
-    width: 32px;
-    height: 32px;
-    border: 2px solid transparent;
-    border-top-color: var(--accent-green);
-    border-right-color: rgba(74, 222, 128, 0.5);
-    border-radius: 50%;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    animation: ringRotate 3s linear infinite;
-    filter: drop-shadow(0 0 4px rgba(74, 222, 128, 0.6));
-}
-
-.orbital-ring::before {
-    content: '';
-    position: absolute;
-    width: 26px;
-    height: 26px;
-    border: 1px solid transparent;
-    border-bottom-color: rgba(74, 222, 128, 0.4);
-    border-left-color: rgba(74, 222, 128, 0.2);
-    border-radius: 50%;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    animation: ringRotateReverse 2s linear infinite;
-}
-
-@keyframes ringRotate {
-    0% {
-        transform: translate(-50%, -50%) rotate(0deg);
-    }
-    100% {
-        transform: translate(-50%, -50%) rotate(360deg);
-    }
-}
-
-@keyframes ringRotateReverse {
-    0% {
-        transform: translate(-50%, -50%) rotate(0deg);
-    }
-    100% {
-        transform: translate(-50%, -50%) rotate(-360deg);
     }
 }
 
@@ -354,7 +308,7 @@ body {
 
 .hero-subtitle {
     color: var(--text-secondary);
-    font-size: 1.1rem;
+    font-size: 1.03rem;
     max-width: 600px;
     margin-bottom: 2.5rem;
     line-height: 1.7;
@@ -1100,12 +1054,17 @@ body {
     flex-shrink: 0;
 }
 
-/* Animated Footer */
+/* Animated Footer - Matches header style */
 .footer-animated {
     position: relative;
     margin-top: 3rem;
+    margin-bottom: 1rem;
     padding: 1.5rem 2rem;
-    background: rgba(74, 222, 128, 0.03);
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px var(--glass-shadow), var(--glass-inner-shadow);
     border-radius: 16px;
     overflow: hidden;
 }
@@ -1129,11 +1088,35 @@ body {
 .footer-brand {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     font-family: 'Orbitron', sans-serif;
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
+    margin-bottom: 1.5rem;
+}
+
+.footer-logo-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+}
+
+.footer-logo-link:hover {
+    transform: scale(1.02);
+}
+
+.footer-logo-link .logo-icon {
+    width: 36px;
+    height: 36px;
+}
+
+.footer-logo-link .logo-text-container {
+    text-align: left;
 }
 
 .footer-status {
@@ -1448,8 +1431,8 @@ body {
     width: 100%;
     height: 100%;
     background-image:
-        linear-gradient(rgba(74, 222, 128, 0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(74, 222, 128, 0.04) 1px, transparent 1px);
+        linear-gradient(rgba(74, 222, 128, 0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(74, 222, 128, 0.12) 1px, transparent 1px);
     background-size: 50px 50px;
     z-index: 1;
     pointer-events: none;
@@ -1623,21 +1606,61 @@ body {
     z-index: 2;
 }
 
+/* Gyroscope-style multi-ring orbital system */
 .orbital-ring {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 120%;
-    height: 120%;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    width: 140%;
+    height: 140%;
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
     border-radius: 50%;
-    transform: translate(-50%, -50%) rotateX(60deg);
-    animation: orbitalSpin 3s linear infinite;
+    transform: translate(-50%, -50%) rotateX(70deg);
+    animation: orbitalSpin1 4s linear infinite;
+    transform-style: preserve-3d;
 }
 
-@keyframes orbitalSpin {
-    from { transform: translate(-50%, -50%) rotateX(60deg) rotateZ(0deg); }
-    to { transform: translate(-50%, -50%) rotateX(60deg) rotateZ(360deg); }
+/* Second ring - horizontal tilt */
+.orbital-ring::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) rotateY(70deg);
+    animation: orbitalSpin2 5s linear infinite reverse;
+}
+
+/* Third ring - diagonal tilt */
+.orbital-ring::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 85%;
+    height: 85%;
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) rotateX(30deg) rotateY(45deg);
+    animation: orbitalSpin3 6s linear infinite;
+}
+
+@keyframes orbitalSpin1 {
+    from { transform: translate(-50%, -50%) rotateX(70deg) rotateZ(0deg); }
+    to { transform: translate(-50%, -50%) rotateX(70deg) rotateZ(360deg); }
+}
+
+@keyframes orbitalSpin2 {
+    from { transform: translate(-50%, -50%) rotateY(70deg) rotateZ(0deg); }
+    to { transform: translate(-50%, -50%) rotateY(70deg) rotateZ(360deg); }
+}
+
+@keyframes orbitalSpin3 {
+    from { transform: translate(-50%, -50%) rotateX(30deg) rotateY(45deg) rotateZ(0deg); }
+    to { transform: translate(-50%, -50%) rotateX(30deg) rotateY(45deg) rotateZ(360deg); }
 }
 
 @keyframes spin {
@@ -2252,7 +2275,7 @@ body {
     overflow: hidden;
 }
 
-.nav-link::before {
+.nav-link .nav-hover-bg {
     content: '';
     position: absolute;
     bottom: 0;
@@ -2266,9 +2289,10 @@ body {
     );
     transform: translateY(100%);
     transition: transform 0.3s ease;
+    pointer-events: none;
 }
 
-.nav-link:hover::before {
+.nav-link:hover .nav-hover-bg {
     transform: translateY(0);
 }
 
