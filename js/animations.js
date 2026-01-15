@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMouseParallax();
     initFeatureCardMouseTracking();
     initTypingEffect();
+    initWidgetScrollCollapse();
 });
 
 // System Time Display
@@ -415,3 +416,100 @@ hexGridStyle.textContent = `
     }
 `;
 document.head.appendChild(hexGridStyle);
+
+// Widget Scroll Collapse - collapses widgets when scrolling down, expands when scrolling up
+function initWidgetScrollCollapse() {
+    const dashboardWidgets = document.querySelector('.dashboard-widgets');
+    const dropZone = document.getElementById('dropZone');
+    if (!dashboardWidgets) return;
+
+    let isCollapsed = false;
+    let initialHeight = 0;
+    let lastScrollY = 0;
+
+    // Wait for layout to complete before measuring
+    setTimeout(() => {
+        initialHeight = dashboardWidgets.offsetHeight;
+        if (initialHeight > 0) {
+            dashboardWidgets.style.maxHeight = initialHeight + 'px';
+        }
+    }, 100);
+
+    function collapseWidgets() {
+        if (isCollapsed) return;
+        isCollapsed = true;
+        dashboardWidgets.style.maxHeight = '0px';
+        dashboardWidgets.style.opacity = '0';
+        dashboardWidgets.style.paddingTop = '0';
+        dashboardWidgets.style.paddingBottom = '0';
+        dashboardWidgets.style.marginBottom = '0';
+        dashboardWidgets.style.pointerEvents = 'none';
+
+        if (dropZone) {
+            dropZone.classList.add('focus-mode');
+        }
+    }
+
+    function expandWidgets() {
+        if (!isCollapsed) return;
+        isCollapsed = false;
+        // Re-measure height if needed
+        if (initialHeight === 0) {
+            initialHeight = dashboardWidgets.scrollHeight || 200;
+        }
+        dashboardWidgets.style.maxHeight = initialHeight + 'px';
+        dashboardWidgets.style.opacity = '1';
+        dashboardWidgets.style.paddingTop = '';
+        dashboardWidgets.style.paddingBottom = '';
+        dashboardWidgets.style.marginBottom = '';
+        dashboardWidgets.style.pointerEvents = '';
+
+        if (dropZone) {
+            dropZone.classList.remove('focus-mode');
+        }
+    }
+
+    function shouldCollapse() {
+        // Collapse after scrolling 120px - ensures title is fully visible before collapse
+        return window.scrollY > 120;
+    }
+
+    function handleScroll() {
+        const currentScrollY = window.scrollY;
+        const scrollDelta = currentScrollY - lastScrollY;
+
+        // Scrolling down - collapse when title is scrolled past
+        if (scrollDelta > 0 && shouldCollapse()) {
+            collapseWidgets();
+        }
+        // Scrolling up and near top - expand
+        else if (scrollDelta < 0 && currentScrollY < 50) {
+            expandWidgets();
+        }
+
+        lastScrollY = currentScrollY;
+    }
+
+    // Use wheel event for more responsive detection
+    window.addEventListener('wheel', (e) => {
+        if (e.deltaY > 0 && shouldCollapse()) {
+            // Scrolling down
+            collapseWidgets();
+        } else if (e.deltaY < 0 && window.scrollY < 50) {
+            // Scrolling up near top
+            expandWidgets();
+        }
+    }, { passive: true });
+
+    // Also listen to scroll for touch devices and scrollbar dragging
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            requestAnimationFrame(() => {
+                handleScroll();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }, { passive: true });
+}
