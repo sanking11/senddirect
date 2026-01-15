@@ -21,6 +21,7 @@
     <div class="app-container">
         <!-- Header -->
         <header class="header liquid-glass">
+            <div class="shimmer-effect"></div>
             <div class="header-left">
                 <a href="index.html" class="logo glitch-text" data-text="Send Direct" style="text-decoration: none;">
                     <span class="logo-icon">
@@ -30,10 +31,14 @@
                         <span class="orbital-ring-3"></span>
                     </span>
                     <div class="logo-text-container">
-                        <span class="logo-text">Send Direct</span>
-                        <span class="logo-version">v1.0</span>
+                        <span class="logo-text">Send Direct </span>
+                        <span class="logo-version"> Q-v1.0.7 Q-Systems Ltd.</span>
                     </div>
                 </a>
+                <div class="system-time">
+                    <span class="time-label">SYS 🌍</span>
+                    <span class="time-display" id="systemTime">00:00:00</span>
+                </div>
             </div>
             <nav class="header-nav">
                 <a href="index.html" class="nav-link" data-index="01">Share</a>
@@ -41,12 +46,164 @@
                 <a href="about.html" class="nav-link" data-index="03">About</a>
             </nav>
             <div class="header-right">
-                <div class="connection-status">
-                    <span class="status-dot active"></span>
-                    <span class="status-label">P2P Ready</span>
+                <div class="uptime-time">
+                    <span class="time-label">UPTIME ⌛</span>
+                    <span class="time-display" id="headerUptime">00:00</span>
                 </div>
             </div>
         </header>
+
+        <!-- Futuristic Dashboard Widgets -->
+        <section class="dashboard-widgets">
+            <!-- System Status Widget -->
+            <div class="widget system-widget liquid-glass">
+                <div class="shimmer-effect"></div>
+                <div class="widget-header">
+                    <span class="widget-icon">◈</span>
+                    <span class="widget-title">SYS STATUS</span>
+                </div>
+                <div class="widget-content">
+                    <div class="status-row">
+                        <span class="status-name">QUANTUM CORE</span>
+                        <span class="status-value online">ACTIVE</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-name">ENCRYPTION</span>
+                        <span class="status-value online">AES-256</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-name">PROTOCOL</span>
+                        <span class="status-value online" id="protocolStatus">WebRTC</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-name">MEMORY</span>
+                        <span class="status-value" id="memoryUsage">-- MB</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-name">NETWORK</span>
+                        <span class="status-value" id="networkStatus">SCANNING...</span>
+                    </div>
+                    <div class="status-bar-container">
+                        <div class="status-bar-fill" id="systemHealth"></div>
+                    </div>
+                    <span class="status-percent" id="healthPercent">98%</span>
+                </div>
+            </div>
+
+            <!-- Cosmic Time Widget -->
+            <div class="widget clock-widget cosmic-widget liquid-glass">
+                <div class="shimmer-effect"></div>
+                <div class="widget-header">
+                    <span class="widget-icon">◷</span>
+                    <span class="widget-title">TEMPORAL SYNC</span>
+                </div>
+                <div class="widget-content cosmic-content">
+                    <!-- Solar Time -->
+                    <div class="cosmic-time-row solar-time">
+                        <span class="planet-icon">☀️</span>
+                        <span class="planet-name">SOLAR</span>
+                        <span class="planet-time" id="solarTime">00:00:00</span>
+                    </div>
+                    <!-- Mars Time -->
+                    <div class="cosmic-time-row mars-time">
+                        <span class="planet-icon">🔴</span>
+                        <span class="planet-name">MARS</span>
+                        <span class="planet-time" id="marsTime">00:00:00</span>
+                    </div>
+                    <!-- Jupiter Time -->
+                    <div class="cosmic-time-row jupiter-time">
+                        <span class="planet-icon">🟠</span>
+                        <span class="planet-name">JUPITER</span>
+                        <span class="planet-time" id="jupiterTime">00:00:00</span>
+                    </div>
+                    <!-- Saturn Time -->
+                    <div class="cosmic-time-row saturn-time">
+                        <span class="planet-icon">🪐</span>
+                        <span class="planet-name">SATURN</span>
+                        <span class="planet-time" id="saturnTime">00:00:00</span>
+                    </div>
+                    <!-- Black Hole Time -->
+                    <div class="cosmic-time-row blackhole-time">
+                        <span class="planet-icon">⚫</span>
+                        <span class="planet-name">Sagittarius</span>
+                        <span class="planet-time" id="blackholeTime">00:00:00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weather Widget -->
+            <div class="widget weather-widget liquid-glass">
+                <div class="shimmer-effect"></div>
+                <div class="widget-header">
+                    <span class="widget-icon">◎</span>
+                    <span class="widget-title">ATMOSPHERE</span>
+                </div>
+                <div class="widget-content weather-content">
+                    <div class="weather-main">
+                        <div class="weather-icon" id="weatherIcon">☀</div>
+                        <div class="weather-temp" id="weatherTemp">--°C</div>
+                    </div>
+                    <div class="weather-details">
+                        <div class="weather-row">
+                            <span class="weather-label">HUMIDITY</span>
+                            <span class="weather-value" id="weatherHumidity">--%</span>
+                        </div>
+                        <div class="weather-row">
+                            <span class="weather-label">WIND</span>
+                            <span class="weather-value" id="weatherWind">-- km/h</span>
+                        </div>
+                        <div class="weather-row">
+                            <span class="weather-label">PRESSURE</span>
+                            <span class="weather-value" id="weatherPressure">-- hPa</span>
+                        </div>
+                        <div class="weather-row">
+                            <span class="weather-label">UV INDEX</span>
+                            <span class="weather-value" id="weatherUV">--</span>
+                        </div>
+                        <div class="weather-row">
+                            <span class="weather-label">LOCATION</span>
+                            <span class="weather-value" id="weatherLocation">DETECTING...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Monitor Widget -->
+            <div class="widget network-widget liquid-glass">
+                <div class="shimmer-effect"></div>
+                <div class="widget-header">
+                    <span class="widget-icon">⬡</span>
+                    <span class="widget-title">Quantum PULSE</span>
+                </div>
+                <div class="widget-content network-content">
+                    <div class="quantum-tunnel-status">
+                        <span class="status-dot active" id="tunnelStatus"></span>
+                        <span class="tunnel-label">Quantum Tunnel Ready</span>
+                    </div>
+                    <div class="network-graph">
+                        <canvas id="networkGraph" width="200" height="35"></canvas>
+                    </div>
+                    <div class="network-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">LATENCY</span>
+                            <span class="stat-value" id="networkLatency">-- ms</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">BANDWIDTH</span>
+                            <span class="stat-value" id="networkBandwidth">-- Mbps</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">PACKETS</span>
+                            <span class="stat-value" id="networkPackets">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">CONN TYPE</span>
+                            <span class="stat-value" id="connectionType">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- Main Content -->
         <main class="main-content">
@@ -134,8 +291,8 @@
                             <span class="orbital-ring-3"></span>
                         </span>
                         <div class="logo-text-container">
-                            <span class="logo-text">Send Direct</span>
-                            <span class="logo-version">v1.0</span>
+                            <span class="logo-text">Send Direct </span>
+                            <span class="logo-version"> Q-v1.0.7 Q-Systems Ltd.</span>
                         </div>
                     </div>
                     <div class="footer-status">
@@ -184,5 +341,6 @@
 
     <script src="js/background.js"></script>
     <script src="js/animations.js"></script>
+    <script src="js/dashboard-widgets.js"></script>
 </body>
 </html>

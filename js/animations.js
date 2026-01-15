@@ -1,5 +1,210 @@
 // Futuristic Animations and Effects
 
+// Quantum Loading Screen
+class QuantumLoader {
+    constructor() {
+        this.loader = document.getElementById('quantumLoader');
+        this.progressBar = document.getElementById('loaderProgress');
+        this.progressPercent = document.getElementById('loaderPercent');
+        this.steps = document.querySelectorAll('.loading-steps .step');
+        this.wormholeCanvas = document.getElementById('wormholeCanvas');
+
+        this.loadingSteps = [
+            { percent: 5, delay: 800 },
+            { percent: 12, delay: 900 },
+            { percent: 20, delay: 1000 },
+            { percent: 28, delay: 900 },
+            { percent: 36, delay: 1100 },
+            { percent: 48, delay: 1000 },
+            { percent: 60, delay: 1200 },
+            { percent: 72, delay: 1000 },
+            { percent: 84, delay: 1100 },
+            { percent: 95, delay: 900 },
+            { percent: 100, delay: 800 }
+        ];
+
+        if (this.loader) {
+            this.init();
+        }
+    }
+
+    init() {
+        this.initWormholeAnimation();
+        this.startLoadingSequence();
+    }
+
+    initWormholeAnimation() {
+        if (!this.wormholeCanvas) return;
+
+        const ctx = this.wormholeCanvas.getContext('2d');
+        const resize = () => {
+            this.wormholeCanvas.width = window.innerWidth;
+            this.wormholeCanvas.height = window.innerHeight;
+        };
+        resize();
+        window.addEventListener('resize', resize);
+
+        const centerX = () => this.wormholeCanvas.width / 2;
+        const centerY = () => this.wormholeCanvas.height / 2;
+
+        const particles = [];
+        const numParticles = 150;
+
+        // Create particles
+        for (let i = 0; i < numParticles; i++) {
+            particles.push({
+                angle: Math.random() * Math.PI * 2,
+                radius: Math.random() * 300 + 50,
+                speed: Math.random() * 0.02 + 0.01,
+                size: Math.random() * 2 + 1,
+                opacity: Math.random() * 0.5 + 0.3,
+                color: Math.random() > 0.5 ? '#4ade80' : (Math.random() > 0.5 ? '#60a5fa' : '#a855f7')
+            });
+        }
+
+        let time = 0;
+        const animate = () => {
+            if (!this.loader || this.loader.classList.contains('hidden')) return;
+
+            ctx.fillStyle = 'rgba(10, 10, 15, 0.1)';
+            ctx.fillRect(0, 0, this.wormholeCanvas.width, this.wormholeCanvas.height);
+
+            time += 0.01;
+
+            // Draw wormhole rings
+            for (let i = 0; i < 8; i++) {
+                const ringRadius = 50 + i * 40 + Math.sin(time * 2 + i) * 10;
+                const opacity = 0.1 - i * 0.01;
+
+                ctx.beginPath();
+                ctx.arc(centerX(), centerY(), ringRadius, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(74, 222, 128, ${opacity})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // Draw and update particles (tunnel effect)
+            particles.forEach(p => {
+                p.angle += p.speed;
+                p.radius -= 0.5;
+
+                if (p.radius < 10) {
+                    p.radius = 300 + Math.random() * 100;
+                    p.angle = Math.random() * Math.PI * 2;
+                }
+
+                const x = centerX() + Math.cos(p.angle) * p.radius;
+                const y = centerY() + Math.sin(p.angle) * p.radius * 0.6;
+
+                const distanceRatio = p.radius / 300;
+                const size = p.size * (1 - distanceRatio * 0.5);
+
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fillStyle = p.color.replace(')', `, ${p.opacity * distanceRatio})`).replace('rgb', 'rgba').replace('#', '');
+
+                // Convert hex to rgba
+                const hex = p.color;
+                const r = parseInt(hex.slice(1, 3), 16);
+                const g = parseInt(hex.slice(3, 5), 16);
+                const b = parseInt(hex.slice(5, 7), 16);
+                ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${p.opacity * distanceRatio})`;
+                ctx.fill();
+
+                // Draw trail
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                const trailX = centerX() + Math.cos(p.angle - p.speed * 10) * (p.radius + 20);
+                const trailY = centerY() + Math.sin(p.angle - p.speed * 10) * (p.radius + 20) * 0.6;
+                ctx.lineTo(trailX, trailY);
+                ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${p.opacity * distanceRatio * 0.3})`;
+                ctx.lineWidth = size * 0.5;
+                ctx.stroke();
+            });
+
+            // Draw center glow
+            const gradient = ctx.createRadialGradient(centerX(), centerY(), 0, centerX(), centerY(), 100);
+            gradient.addColorStop(0, 'rgba(74, 222, 128, 0.3)');
+            gradient.addColorStop(0.5, 'rgba(96, 165, 250, 0.1)');
+            gradient.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, this.wormholeCanvas.width, this.wormholeCanvas.height);
+
+            requestAnimationFrame(animate);
+        };
+
+        animate();
+    }
+
+    async startLoadingSequence() {
+        for (let i = 0; i < this.loadingSteps.length; i++) {
+            await this.delay(this.loadingSteps[i].delay);
+            this.updateProgress(this.loadingSteps[i].percent, i);
+        }
+
+        // Final delay before hiding
+        await this.delay(1500);
+        this.hideLoader();
+    }
+
+    updateProgress(percent, stepIndex) {
+        // Update progress bar
+        if (this.progressBar) {
+            this.progressBar.style.width = `${percent}%`;
+        }
+
+        // Update percent text
+        if (this.progressPercent) {
+            this.progressPercent.textContent = `${percent}%`;
+        }
+
+        // Update steps
+        this.steps.forEach((step, index) => {
+            if (index < stepIndex) {
+                step.classList.remove('active');
+                step.classList.add('completed');
+            } else if (index === stepIndex) {
+                step.classList.add('active');
+                step.classList.remove('completed');
+            } else {
+                step.classList.remove('active', 'completed');
+            }
+        });
+
+        // Add glitch effect randomly
+        if (Math.random() > 0.7) {
+            this.triggerGlitch();
+        }
+    }
+
+    triggerGlitch() {
+        const glitchOverlay = document.querySelector('.loader-glitch-overlay');
+        if (glitchOverlay) {
+            glitchOverlay.style.opacity = '1';
+            setTimeout(() => {
+                glitchOverlay.style.opacity = '0';
+            }, 50);
+        }
+    }
+
+    hideLoader() {
+        if (this.loader) {
+            this.loader.classList.add('hidden');
+            // Remove from DOM after animation
+            setTimeout(() => {
+                this.loader.style.display = 'none';
+            }, 800);
+        }
+    }
+
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+}
+
+// Initialize loader immediately
+const quantumLoader = new QuantumLoader();
+
 // Scroll Reveal Animation
 const observerOptions = {
     threshold: 0.1,
@@ -425,7 +630,6 @@ function initWidgetScrollCollapse() {
 
     let isCollapsed = false;
     let initialHeight = 0;
-    let lastScrollY = 0;
 
     // Wait for layout to complete before measuring
     setTimeout(() => {
@@ -445,9 +649,18 @@ function initWidgetScrollCollapse() {
         dashboardWidgets.style.marginBottom = '0';
         dashboardWidgets.style.pointerEvents = 'none';
 
+        // Add top padding to hero section so dropzone doesn't go too high
+        const heroSection = document.querySelector('.hero-section');
+        if (heroSection) {
+            heroSection.style.paddingTop = '3rem';
+        }
+
         if (dropZone) {
             dropZone.classList.add('focus-mode');
         }
+
+        // Scroll to top so dropzone title stays visible below header
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function expandWidgets() {
@@ -464,52 +677,44 @@ function initWidgetScrollCollapse() {
         dashboardWidgets.style.marginBottom = '';
         dashboardWidgets.style.pointerEvents = '';
 
+        // Remove top padding from hero section
+        const heroSection = document.querySelector('.hero-section');
+        if (heroSection) {
+            heroSection.style.paddingTop = '';
+        }
+
         if (dropZone) {
             dropZone.classList.remove('focus-mode');
         }
     }
 
-    function shouldCollapse() {
-        // Collapse after scrolling 120px - ensures title is fully visible before collapse
-        return window.scrollY > 120;
-    }
-
-    function handleScroll() {
-        const currentScrollY = window.scrollY;
-        const scrollDelta = currentScrollY - lastScrollY;
-
-        // Scrolling down - collapse when title is scrolled past
-        if (scrollDelta > 0 && shouldCollapse()) {
-            collapseWidgets();
-        }
-        // Scrolling up and near top - expand
-        else if (scrollDelta < 0 && currentScrollY < 50) {
-            expandWidgets();
-        }
-
-        lastScrollY = currentScrollY;
-    }
-
-    // Use wheel event for more responsive detection
+    // Use wheel event - collapse on ANY scroll down, expand on scroll up when at top
     window.addEventListener('wheel', (e) => {
-        if (e.deltaY > 0 && shouldCollapse()) {
-            // Scrolling down
+        if (e.deltaY > 0) {
+            // Scrolling down - collapse immediately
             collapseWidgets();
-        } else if (e.deltaY < 0 && window.scrollY < 50) {
-            // Scrolling up near top
+        } else if (e.deltaY < 0 && window.scrollY <= 10) {
+            // Scrolling up and at/near top - expand
             expandWidgets();
         }
     }, { passive: true });
 
-    // Also listen to scroll for touch devices and scrollbar dragging
-    let ticking = false;
-    window.addEventListener('scroll', () => {
-        if (!ticking) {
-            requestAnimationFrame(() => {
-                handleScroll();
-                ticking = false;
-            });
-            ticking = true;
+    // Also handle touch devices
+    let touchStartY = 0;
+    window.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+        const touchY = e.touches[0].clientY;
+        const delta = touchStartY - touchY;
+
+        if (delta > 10) {
+            // Swiping up (scrolling down) - collapse
+            collapseWidgets();
+        } else if (delta < -10 && window.scrollY <= 10) {
+            // Swiping down (scrolling up) at top - expand
+            expandWidgets();
         }
     }, { passive: true });
 }

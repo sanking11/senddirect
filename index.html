@@ -9,6 +9,97 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+    <!-- Quantum Loading Screen -->
+    <div class="quantum-loader" id="quantumLoader">
+        <div class="loader-background">
+            <canvas id="wormholeCanvas"></canvas>
+            <div class="quantum-grid"></div>
+            <div class="quantum-particles"></div>
+        </div>
+
+        <div class="loader-content">
+            <div class="loader-logo">
+                <div class="quantum-ring ring-1"></div>
+                <div class="quantum-ring ring-2"></div>
+                <div class="quantum-ring ring-3"></div>
+                <div class="quantum-core">
+                    <span class="infinity-symbol">∞</span>
+                </div>
+            </div>
+
+            <h1 class="loader-title glitch-text" data-text="QUANTUM TUNNEL">QUANTUM TUNNEL</h1>
+            <p class="loader-subtitle">Initializing Quantum Field...</p>
+
+            <div class="loading-steps">
+                <div class="step" data-step="1">
+                    <span class="step-percent">[ 5% ]</span>
+                    <span class="step-text">Quantum system isolated</span>
+                    <span class="step-subtext">(Environmental decoherence suppressed)</span>
+                </div>
+                <div class="step" data-step="2">
+                    <span class="step-percent">[ 12% ]</span>
+                    <span class="step-text">Negative energy field initiated</span>
+                    <span class="step-subtext">(Localized vacuum energy imbalance generated)</span>
+                </div>
+                <div class="step" data-step="3">
+                    <span class="step-percent">[ 20% ]</span>
+                    <span class="step-text">Exotic matter state formed</span>
+                    <span class="step-subtext">(Sustained negative-energy configuration established)</span>
+                </div>
+                <div class="step" data-step="4">
+                    <span class="step-percent">[ 28% ]</span>
+                    <span class="step-text">Spacetime geometry modulated</span>
+                    <span class="step-subtext">(Local spacetime curvature adjusted)</span>
+                </div>
+                <div class="step" data-step="5">
+                    <span class="step-percent">[ 36% ]</span>
+                    <span class="step-text">Quantum entanglement established</span>
+                    <span class="step-subtext">(Non-classical correlations active)</span>
+                </div>
+                <div class="step" data-step="6">
+                    <span class="step-percent">[ 48% ]</span>
+                    <span class="step-text">Quantum reference frames aligned</span>
+                    <span class="step-subtext">(Temporal and phase synchronization complete)</span>
+                </div>
+                <div class="step" data-step="7">
+                    <span class="step-percent">[ 60% ]</span>
+                    <span class="step-text">Quantum state lattice stabilized</span>
+                    <span class="step-subtext">(State control matrix holding)</span>
+                </div>
+                <div class="step" data-step="8">
+                    <span class="step-percent">[ 72% ]</span>
+                    <span class="step-text">Quantum channels synchronized</span>
+                    <span class="step-subtext">(Quantum and classical paths aligned)</span>
+                </div>
+                <div class="step" data-step="9">
+                    <span class="step-percent">[ 84% ]</span>
+                    <span class="step-text">Quantum measurement bases locked</span>
+                    <span class="step-subtext">(Observation parameters fixed)</span>
+                </div>
+                <div class="step" data-step="10">
+                    <span class="step-percent">[ 95% ]</span>
+                    <span class="step-text">Quantum coherence confirmed</span>
+                    <span class="step-subtext">(Decoherence within operational limits)</span>
+                </div>
+                <div class="step final-step" data-step="11">
+                    <span class="step-percent">[ 100% ]</span>
+                    <span class="step-text">QUANTUM STATE TRANSFER READY</span>
+                </div>
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="loaderProgress"></div>
+                    <div class="progress-glow"></div>
+                </div>
+                <span class="progress-percent" id="loaderPercent">0%</span>
+            </div>
+        </div>
+
+        <div class="loader-scanlines"></div>
+        <div class="loader-glitch-overlay"></div>
+    </div>
+
     <!-- Background Canvas -->
     <canvas id="liquidCanvas"></canvas>
 
@@ -43,6 +134,7 @@
     <div class="app-container">
         <!-- Header -->
         <header class="header liquid-glass">
+            <div class="shimmer-effect"></div>
             <div class="header-left">
                 <div class="logo glitch-text" data-text="Send Direct">
                     <span class="logo-icon">
@@ -53,7 +145,7 @@
                     </span>
                     <div class="logo-text-container">
                         <span class="logo-text">Send Direct </span>
-                        <span class="logo-version"> v1.0</span>
+                        <span class="logo-version"> Q-v1.0.7 Q-Systems Ltd.</span>
                     </div>
                 </div>
                 <div class="system-time">
@@ -78,6 +170,7 @@
         <section class="dashboard-widgets">
             <!-- System Status Widget -->
             <div class="widget system-widget liquid-glass">
+                <div class="shimmer-effect"></div>
                 <div class="widget-header">
                     <span class="widget-icon">◈</span>
                     <span class="widget-title">SYS STATUS</span>
@@ -112,6 +205,7 @@
 
             <!-- Cosmic Time Widget -->
             <div class="widget clock-widget cosmic-widget liquid-glass">
+                <div class="shimmer-effect"></div>
                 <div class="widget-header">
                     <span class="widget-icon">◷</span>
                     <span class="widget-title">TEMPORAL SYNC</span>
@@ -152,6 +246,7 @@
 
             <!-- Weather Widget -->
             <div class="widget weather-widget liquid-glass">
+                <div class="shimmer-effect"></div>
                 <div class="widget-header">
                     <span class="widget-icon">◎</span>
                     <span class="widget-title">ATMOSPHERE</span>
@@ -188,6 +283,7 @@
 
             <!-- Network Monitor Widget -->
             <div class="widget network-widget liquid-glass">
+                <div class="shimmer-effect"></div>
                 <div class="widget-header">
                     <span class="widget-icon">⬡</span>
                     <span class="widget-title">Quantum PULSE</span>
@@ -238,7 +334,7 @@
                     <div class="hero-content">
                         <h1 class="hero-title">Quantum Tunnelling  <span class="highlight">Drop Zone</span> Platform</h1>
                           <!--<h3>Quantum Tunnelling Drop Zone Platform</h3><br>-->
-                        <p class="hero-subtitle">Quantum-speed file transmission through encrypted neural pathways. Zero server contact, zero data traces - just pure Quantum Point to Point teleportation.</p>
+                        <p class="hero-subtitle">Quantum-speed file transference through encrypted neural networks enables true Point-to-Point teleportation with no intermediate observation and no persistent quantum footprint. Information exists only as a quantum state until observation, held in superposition and resolved through entanglement; upon measurement, the wavefunction collapses and the data manifests—its state reconstructed directly at the target node, without traversal, interception, or residual footprint.</p>
 
                         <!-- File Drop Zone -->
                         <div class="file-drop-zone" id="dropZone">
@@ -291,6 +387,52 @@
                     </div>
                 </div>
 
+                <!-- Stats Widgets Section (hidden until files are dropped) -->
+                <section class="stats-widgets" id="statsWidgets" style="display: none;">
+                    <div class="stat-card liquid-glass">
+                        <div class="shimmer-effect"></div>
+                        <div class="stat-icon">📁</div>
+                        <div class="stat-number" id="statTotalFiles">0</div>
+                        <div class="stat-label">TOTAL FILES</div>
+                    </div>
+                    <div class="stat-card liquid-glass success">
+                        <div class="shimmer-effect"></div>
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-number" id="statSuccessful">0</div>
+                        <div class="stat-label">SUCCESSFUL</div>
+                    </div>
+                    <div class="stat-card liquid-glass">
+                        <div class="shimmer-effect"></div>
+                        <div class="stat-icon">📋</div>
+                        <div class="stat-number" id="statPending">0</div>
+                        <div class="stat-label">PENDING</div>
+                    </div>
+                    <div class="stat-card liquid-glass">
+                        <div class="shimmer-effect"></div>
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-number" id="statTransferSpeed">0</div>
+                        <div class="stat-label">AVG SPEED (MB/s)</div>
+                    </div>
+                    <div class="stat-card liquid-glass">
+                        <div class="shimmer-effect"></div>
+                        <div class="stat-icon">⏱️</div>
+                        <div class="stat-number" id="statTimeTaken">0m</div>
+                        <div class="stat-label">TIME TAKEN</div>
+                    </div>
+                    <div class="stat-card liquid-glass highlight">
+                        <div class="shimmer-effect"></div>
+                        <div class="stat-icon">👤</div>
+                        <div class="stat-number" id="statYourTotal">0</div>
+                        <div class="stat-label">YOUR TOTAL FILES</div>
+                    </div>
+                    <div class="stat-card liquid-glass global">
+                        <div class="shimmer-effect"></div>
+                        <div class="stat-icon">🌐</div>
+                        <div class="stat-number" id="statGlobalTotal">0</div>
+                        <div class="stat-label">GLOBAL TOTAL</div>
+                    </div>
+                </section>
+
                 <!-- Share Link Section (Hidden until generated) -->
                 <div class="share-link-section liquid-glass" id="shareLinkSection" style="display: none;">
                     <div class="shimmer-effect"></div>
@@ -328,7 +470,7 @@
                         </div>
 
                         <div class="transfer-warning">
-                            <span class="warning-icon">⚠</span>
+                            <span class="warning-icon">⚠⚠️</span>
                             <span class="warning-text">Keep this tab open until transfer completes</span>
                         </div>
                     </div>
@@ -395,6 +537,7 @@
 
             <!-- Features Section -->
             <section class="features-section">
+                <h2 class="section-title">Quantum Properties</h2>
                 <div class="features-grid">
                     <div class="feature-card liquid-glass">
                         <div class="shimmer-effect"></div>
@@ -424,7 +567,17 @@
                         <h3 class="feature-title">Neural Link</h3>
                         <p class="feature-desc">WebRTC forges a direct synaptic bridge. Your data bypasses the matrix entirely.</p>
                     </div>
-
+ <div class="feature-card liquid-glass">
+                        <div class="shimmer-effect"></div>
+                        <div class="mouse-glow"></div>
+                        <div class="feature-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Warp Speed</h3>
+                        <p class="feature-desc">Hyperloop routing finds the fastest vector. Local transfers never leave your grid.</p>
+                    </div>
                     <div class="feature-card liquid-glass">
                         <div class="shimmer-effect"></div>
                         <div class="mouse-glow"></div>
@@ -438,17 +591,7 @@
                         <p class="feature-desc">DTLS 1.3 cloaks every packet. Invisible to surveillance. Untraceable by design.</p>
                     </div>
 
-                    <div class="feature-card liquid-glass">
-                        <div class="shimmer-effect"></div>
-                        <div class="mouse-glow"></div>
-                        <div class="feature-icon">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-                            </svg>
-                        </div>
-                        <h3 class="feature-title">Warp Speed</h3>
-                        <p class="feature-desc">Hyperloop routing finds the fastest vector. Local transfers never leave your grid.</p>
-                    </div>
+                   
                 </div>
             </section>
 
@@ -460,7 +603,7 @@
                         <div class="shimmer-effect"></div>
                         <div class="step-number">01</div>
                         <h3 class="step-title">Initialize Payload</h3>
-                        <p class="step-desc">Drop files into the portal. Data stays in your realm until the link activates.</p>
+                        <p class="step-desc">Drop files into the portal. Data stays in your portal until the link activates.</p>
                     </div>
                     <div class="step-arrow">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -472,7 +615,7 @@
                         <div class="shimmer-effect"></div>
                         <div class="step-number">02</div>
                         <h3 class="step-title">Transmit Coordinates</h3>
-                        <p class="step-desc">Generate a one-time quantum key. Share the beacon with your target.</p>
+                        <p class="step-desc">Generate a one-time quantum key. Share the Q-Key with your target Q-Node.</p>
                     </div>
                     <div class="step-arrow">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -484,7 +627,7 @@
                         <div class="shimmer-effect"></div>
                         <div class="step-number">03</div>
                         <h3 class="step-title">Execute Transfer</h3>
-                        <p class="step-desc">Watch data stream through the ether. Mission complete? Vanish without a trace.</p>
+                        <p class="step-desc">Watch data stream through the Q-Tunnel. Mission complete? Vanish without a trace.</p>
                     </div>
                 </div>
             </section>
@@ -492,6 +635,7 @@
 
         <!-- Footer -->
         <footer class="footer-animated">
+            <div class="shimmer-effect"></div>
             <div class="footer-glow"></div>
             <div class="footer-border-animated"></div>
             <div class="hex-pattern"></div>
@@ -505,8 +649,8 @@
                             <span class="orbital-ring-3"></span>
                         </span>
                         <div class="logo-text-container">
-                            <span class="logo-text">Send Direct</span>
-                            <span class="logo-version">v1.0</span>
+                            <span class="logo-text">Send Direct </span>
+                            <span class="logo-version"> Q-v1.0.7 Q-Systems Ltd.</span>
                         </div>
                     </div>
                     <div class="footer-status">

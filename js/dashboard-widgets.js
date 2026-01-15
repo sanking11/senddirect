@@ -638,4 +638,190 @@ class DashboardWidgets {
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     new DashboardWidgets();
+    new StatsWidgets();
 });
+
+// Stats Widgets - Track file transfer statistics
+class StatsWidgets {
+    constructor() {
+        this.stats = this.loadStats();
+        this.sessionStats = {
+            totalFiles: 0,
+            successful: 0,
+            pending: 0,
+            transferSpeed: 0,
+            startTime: null
+        };
+        this.init();
+    }
+
+    init() {
+        this.updateDisplay();
+        this.bindFileShareEvents();
+        // Update display every second for time tracking
+        setInterval(() => this.updateTimeTaken(), 1000);
+    }
+
+    loadStats() {
+        const stored = localStorage.getItem('sendDirectStats');
+        if (stored) {
+            return JSON.parse(stored);
+        }
+        return {
+            yourTotalFiles: 0,
+            totalSuccessful: 0,
+            totalTime: 0
+        };
+    }
+
+    saveStats() {
+        localStorage.setItem('sendDirectStats', JSON.stringify(this.stats));
+    }
+
+    bindFileShareEvents() {
+        // Listen for file selection
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    this.showStatsWidgets();
+                    this.sessionStats.totalFiles = e.target.files.length;
+                    this.sessionStats.pending = e.target.files.length;
+                    this.updateDisplay();
+                }
+            });
+        }
+
+        // Listen for drop events
+        const dropZone = document.getElementById('dropZone');
+        if (dropZone) {
+            dropZone.addEventListener('drop', () => {
+                // Files will be counted after drop handler processes
+                setTimeout(() => {
+                    const filesList = document.getElementById('filesList');
+                    if (filesList) {
+                        const fileItems = filesList.querySelectorAll('.file-item');
+                        if (fileItems.length > 0) {
+                            this.showStatsWidgets();
+                            this.sessionStats.totalFiles = fileItems.length;
+                            this.sessionStats.pending = fileItems.length;
+                            this.updateDisplay();
+                        }
+                    }
+                }, 100);
+            });
+        }
+
+        // Listen for share button click to start timer
+        const shareBtn = document.getElementById('shareBtn');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', () => {
+                this.sessionStats.startTime = Date.now();
+                this.updateDisplay();
+            });
+        }
+
+        // Expose methods globally for FileShare class to call
+        window.statsWidgets = {
+            onTransferComplete: (fileCount, speed) => this.onTransferComplete(fileCount, speed),
+            onFileAdded: (count) => this.onFileAdded(count),
+            onTransferStart: () => this.onTransferStart(),
+            onTransferProgress: (pending) => this.onTransferProgress(pending),
+            show: () => this.showStatsWidgets(),
+            hide: () => this.hideStatsWidgets()
+        };
+    }
+
+    showStatsWidgets() {
+        const statsSection = document.getElementById('statsWidgets');
+        if (statsSection) {
+            statsSection.style.display = 'grid';
+        }
+    }
+
+    hideStatsWidgets() {
+        const statsSection = document.getElementById('statsWidgets');
+        if (statsSection) {
+            statsSection.style.display = 'none';
+        }
+    }
+
+    onFileAdded(count) {
+        if (count > 0) {
+            this.showStatsWidgets();
+        }
+        this.sessionStats.totalFiles = count;
+        this.sessionStats.pending = count;
+        this.updateDisplay();
+    }
+
+    onTransferStart() {
+        this.sessionStats.startTime = Date.now();
+        this.updateDisplay();
+    }
+
+    onTransferProgress(pending) {
+        this.sessionStats.pending = pending;
+        this.sessionStats.successful = this.sessionStats.totalFiles - pending;
+        this.updateDisplay();
+    }
+
+    onTransferComplete(fileCount, speed) {
+        this.sessionStats.successful = fileCount;
+        this.sessionStats.pending = 0;
+        this.sessionStats.transferSpeed = speed || 0;
+
+        // Update lifetime stats
+        this.stats.yourTotalFiles += fileCount;
+        this.stats.totalSuccessful += fileCount;
+        if (this.sessionStats.startTime) {
+            this.stats.totalTime += (Date.now() - this.sessionStats.startTime);
+        }
+        this.saveStats();
+        this.updateDisplay();
+    }
+
+    updateTimeTaken() {
+        const timeTakenEl = document.getElementById('statTimeTaken');
+        if (timeTakenEl && this.sessionStats.startTime) {
+            const elapsed = Date.now() - this.sessionStats.startTime;
+            const minutes = Math.floor(elapsed / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            if (minutes > 0) {
+                timeTakenEl.textContent = `${minutes}m ${seconds}s`;
+            } else {
+                timeTakenEl.textContent = `${seconds}s`;
+            }
+        }
+    }
+
+    async fetchGlobalStats() {
+        // This would typically fetch from your backend
+        // For now, simulate with local storage aggregate
+        const globalTotal = document.getElementById('statGlobalTotal');
+        if (globalTotal) {
+            // Simulate a growing global count
+            const baseCount = 2747;
+            const randomAdd = Math.floor(Math.random() * 100);
+            globalTotal.textContent = (baseCount + randomAdd + this.stats.yourTotalFiles).toLocaleString();
+        }
+    }
+
+    updateDisplay() {
+        // Session stats
+        const totalFilesEl = document.getElementById('statTotalFiles');
+        const successfulEl = document.getElementById('statSuccessful');
+        const pendingEl = document.getElementById('statPending');
+        const speedEl = document.getElementById('statTransferSpeed');
+        const yourTotalEl = document.getElementById('statYourTotal');
+
+        if (totalFilesEl) totalFilesEl.textContent = this.sessionStats.totalFiles;
+        if (successfulEl) successfulEl.textContent = this.sessionStats.successful;
+        if (pendingEl) pendingEl.textContent = this.sessionStats.pending;
+        if (speedEl) speedEl.textContent = this.sessionStats.transferSpeed.toFixed(1);
+        if (yourTotalEl) yourTotalEl.textContent = this.stats.yourTotalFiles.toLocaleString();
+
+        // Fetch global stats
+        this.fetchGlobalStats();
+    }
+}
