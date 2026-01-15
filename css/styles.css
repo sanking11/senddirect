@@ -1099,6 +1099,10 @@ body {
 
 .transfer-warning .warning-text {
     animation: warningTextFlash 1s ease-in-out infinite;
+     font-family: 'Orbitron', sans-serif;
+   
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
 }
 
 @keyframes warningGlow {

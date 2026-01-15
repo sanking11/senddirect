@@ -569,7 +569,8 @@ class FileShare {
 
     checkUrlForRoom() {
         const urlParams = new URLSearchParams(window.location.search);
-        const roomId = urlParams.get('room');
+        // Check for Q-Gate parameter (new) or room parameter (legacy)
+        const roomId = urlParams.get('Q-Gate') || urlParams.get('room');
         if (roomId) {
             this.isHost = false;
             this.roomId = roomId;
