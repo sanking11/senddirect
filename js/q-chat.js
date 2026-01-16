@@ -191,6 +191,11 @@ class QChat {
                 this.updateStatus('connecting', 'Waiting for peer...');
                 break;
 
+            case 'room-joined':
+                this.showSystemMessage('Joined room! Waiting for host...');
+                this.updateStatus('connecting', 'Waiting for host...');
+                break;
+
             case 'peer-joined':
                 this.showSystemMessage('Peer connected! Setting up secure channel...');
                 this.updateStatus('connecting', 'Establishing P2P...');
