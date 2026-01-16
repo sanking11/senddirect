@@ -340,8 +340,14 @@ class FileShare {
                 break;
 
             case 'peer-left':
-                this.showNotification(msg.message || 'Peer disconnected', 'error');
-                this.updateTransferStatus('Peer disconnected');
+                // Don't show error if transfer completed successfully
+                if (this.transferComplete) {
+                    this.updateConnectionStatus('Peer disconnected');
+                } else {
+                    this.showNotification(msg.message || 'Peer disconnected', 'error');
+                    this.updateTransferStatus('Peer disconnected');
+                    this.updateConnectionStatus('Peer disconnected');
+                }
                 break;
 
             case 'offer':
@@ -649,20 +655,25 @@ class FileShare {
             console.log('Connection state:', state);
             if (state === 'connecting') {
                 this.updateTransferStatus('Establishing P2P connection...');
+                this.updateConnectionStatus('Connecting...');
             } else if (state === 'connected') {
                 this.showNotification('Connected!', 'success');
+                this.updateConnectionStatus('P2P Connected');
                 if (this.isHost) this.updateShareStatus('Transfer starting...');
             } else if (state === 'failed' || state === 'disconnected') {
                 // Only show error if transfer didn't complete successfully
                 if (this.transferComplete) {
                     // Transfer was successful, connection closing is normal
                     console.log('Connection closed after successful transfer');
+                    this.updateConnectionStatus('Transfer completed - connection closed');
                 } else {
                     if (state === 'failed') {
                         this.showNotification('P2P connection failed. Try refreshing both devices.', 'error');
                         this.updateTransferStatus('Connection failed - try again');
+                        this.updateConnectionStatus('Connection failed');
                     } else {
                         this.updateTransferStatus('Connection interrupted...');
+                        this.updateConnectionStatus('Disconnected');
                     }
                 }
             }
@@ -708,6 +719,7 @@ class FileShare {
             await this.peerConnection.setLocalDescription(answer);
             this.send({ type: 'answer', roomId: this.roomId, sdp: answer.sdp });
             this.updateTransferStatus('Connected! Waiting for files...');
+            this.updateConnectionStatus('Waiting for files...');
         } catch (error) {
             console.error('Offer handling error:', error);
         }
@@ -738,9 +750,11 @@ class FileShare {
             console.log('Data channel open');
             if (this.isHost) {
                 this.showNotification('Starting transfer...', 'success');
+                this.updateConnectionStatus('Sending files...');
                 this.startFileTransfer();
             } else {
                 this.updateTransferStatus('Receiving files...');
+                this.updateConnectionStatus('Receiving files...');
             }
         };
 
@@ -773,7 +787,8 @@ class FileShare {
                 this.assembleAndDownloadFile();
             } else if (msg.type === 'all-complete') {
                 this.transferComplete = true; // Mark transfer as successful
-                this.updateTransferStatus('All files received!');
+                this.updateTransferStatus('Transfer Complete!');
+                this.updateConnectionStatus('All files received successfully');
                 this.updateProgressBar(100);
                 this.showNotification('All files received!', 'success');
                 // Release locks after transfer complete
@@ -803,7 +818,9 @@ class FileShare {
 
         this.dataChannel.send(JSON.stringify({ type: 'all-complete' }));
         this.transferComplete = true; // Mark transfer as successful
-        this.updateTransferStatus('All files sent!');
+        this.updateTransferStatus('Transfer Complete!');
+        this.updateShareStatus('Transfer Complete!');
+        this.updateConnectionStatus('All files sent successfully');
         this.updateProgressBar(100);
         this.showNotification('All files sent!', 'success');
 
@@ -924,6 +941,11 @@ class FileShare {
 
     updateTransferStatus(text) {
         const el = document.querySelector('.transfer-title');
+        if (el) el.textContent = text;
+    }
+
+    updateConnectionStatus(text) {
+        const el = document.getElementById('connectionStatus');
         if (el) el.textContent = text;
     }
 

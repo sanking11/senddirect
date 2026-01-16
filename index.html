@@ -470,7 +470,7 @@
                         </div>
 
                         <div class="transfer-warning">
-                            <span class="warning-icon">⚠⚠️</span>
+                            <span class="warning-icon">⚠</span>
                             <span class="warning-text">Keep this tab open until transfer completes</span>
                         </div>
                     </div>
@@ -530,6 +530,18 @@
                                 </svg>
                             </span>
                             <span class="file-name" id="currentFileName">file.txt</span>
+                        </div>
+
+                        <div class="connection-status-bar">
+                            <span class="connection-status-icon">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+                                    <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+                                    <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+                                    <circle cx="12" cy="20" r="1"/>
+                                </svg>
+                            </span>
+                            <span class="connection-status-text" id="connectionStatus">Connected</span>
                         </div>
                     </div>
                 </div>
@@ -663,7 +675,7 @@
                             <span class="status-label">WebRTC Bridge Active</span>
                         </div>
                     </div>
-                    <div class="footer-info">
+                    <div class="footer-status">
                         <span class="encryption-badge">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -697,6 +709,147 @@
         </footer>
     </div>
 
+    <!-- Q-Chat Toggle Button -->
+    <button type="button" class="qchat-toggle" id="qchatToggle" title="Q-Chat">
+        <!-- Orbital Rings - 3D rotating like logo -->
+        <div class="qchat-orbital-rings">
+            <span class="qchat-orbit qchat-orbit-1"></span>
+            <span class="qchat-orbit qchat-orbit-2"></span>
+            <span class="qchat-orbit qchat-orbit-3"></span>
+        </div>
+        <!-- Chat Icon -->
+        <div class="qchat-toggle-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" class="chat-bubble"/>
+                <circle cx="8" cy="10" r="1.2" fill="currentColor" class="chat-dot chat-dot-1"/>
+                <circle cx="12" cy="10" r="1.2" fill="currentColor" class="chat-dot chat-dot-2"/>
+                <circle cx="16" cy="10" r="1.2" fill="currentColor" class="chat-dot chat-dot-3"/>
+            </svg>
+        </div>
+        <!-- Glow Effect -->
+        <div class="qchat-toggle-glow"></div>
+        <span class="qchat-badge" id="qchatBadge" style="display: none;">0</span>
+    </button>
+
+    <!-- Q-Chat Panel -->
+    <div class="qchat-panel" id="qchatPanel">
+        <div class="qchat-container liquid-glass">
+            <div class="shimmer-effect"></div>
+            <div class="circuit-pattern"></div>
+
+            <!-- Chat Header -->
+            <div class="qchat-header">
+                <div class="qchat-title">
+                    <div class="qchat-logo-small">
+                        <div class="quantum-rings">
+                            <span class="ring ring-1"></span>
+                            <span class="ring ring-2"></span>
+                            <span class="ring ring-3"></span>
+                        </div>
+                        <span class="qchat-symbol">Q</span>
+                    </div>
+                    <span class="qchat-name">Q-Chat</span>
+                    <span class="qchat-version">Q-v1.0.7</span><br>
+                   
+                </div>
+                <div class="qchat-status" id="qchatStatus">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Disconnected</span>
+                </div>
+                <button type="button" class="qchat-close" id="qchatClose" title="Close Q-Chat">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Chat Connection Section -->
+            <div class="qchat-connect" id="qchatConnect">
+                <div class="qchat-connect-content">
+                    <div class="qchat-logo">
+                        <div class="quantum-rings">
+                            <span class="ring ring-1"></span>
+                            <span class="ring ring-2"></span>
+                            <span class="ring ring-3"></span>
+                        </div>
+                        <span class="qchat-symbol">Q</span>
+                    </div>
+                    <h3 class="qchat-connect-title">Quantum-Sentinel End-to-end encrypted P2P Chat</h3>
+                    <p class="qchat-connect-desc">Chats persist as quantum states in superposition until shared observation collapses the state, manifesting the conversation directly at the peer endpoint with no traversal and no trace.</p>
+
+                    <div class="qchat-actions">
+                        <button type="button" class="qchat-btn qchat-btn-primary" id="qchatCreate">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Create Chat Room
+                        </button>
+                        <div class="qchat-divider">
+                            <span>or</span>
+                        </div>
+                        <div class="qchat-join-form">
+                            <input type="text" class="qchat-input" id="qchatRoomInput" placeholder="Enter Room Code">
+                            <button type="button" class="qchat-btn qchat-btn-secondary" id="qchatJoin">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                                    <polyline points="10 17 15 12 10 7"/>
+                                    <line x1="15" y1="12" x2="3" y2="12"/>
+                                </svg>
+                                Join
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Room Info (shown after creating room) -->
+            <div class="qchat-room-info" id="qchatRoomInfo" style="display: none;">
+                <div class="qchat-room-code">
+                    <span class="room-label">Room Code</span>
+                    <div class="room-code-display">
+                        <span class="room-code" id="qchatRoomCode">------</span>
+                        <button type="button" class="copy-btn" id="qchatCopyCode" title="Copy Code">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <p class="qchat-waiting">Waiting for peer to join...</p>
+            </div>
+
+            <!-- Chat Messages Section -->
+            <div class="qchat-messages" id="qchatMessages" style="display: none;">
+                <div class="qchat-messages-list" id="qchatMessagesList">
+                    <!-- Messages will be added here -->
+                </div>
+            </div>
+
+            <!-- Chat Input Section -->
+            <div class="qchat-input-section" id="qchatInputSection" style="display: none;">
+                <div class="qchat-encryption-badge">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    <span>DTLS 1.3 Encrypted</span>
+                </div>
+                <div class="qchat-input-wrapper">
+                    <input type="text" class="qchat-message-input" id="qchatMessageInput" placeholder="Type a message..." disabled>
+                    <button type="button" class="qchat-send-btn" id="qchatSendBtn" title="Send Message" disabled>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"/>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- SVG Filters -->
     <svg class="svg-filters">
         <defs>
@@ -713,5 +866,6 @@
     <script src="js/animations.js"></script>
     <script src="js/dashboard-widgets.js"></script>
     <script src="js/file-share.js"></script>
+    <script src="js/q-chat.js"></script>
 </body>
 </html>
