@@ -113,14 +113,17 @@ class QChat {
         return result;
     }
 
+    getWebSocketUrl() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        return `${protocol}//${window.location.host}/ws`;
+    }
+
     async connectToServer() {
         return new Promise((resolve, reject) => {
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const host = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                ? `${window.location.hostname}:3000`
-                : window.location.host;
+            const wsUrl = this.getWebSocketUrl();
+            console.log('Q-Chat: Connecting to:', wsUrl);
 
-            this.ws = new WebSocket(`${protocol}//${host}/ws`);
+            this.ws = new WebSocket(wsUrl);
 
             this.ws.onopen = () => {
                 console.log('Q-Chat: WebSocket connected');
@@ -224,19 +227,29 @@ class QChat {
                 break;
 
             case 'error':
-                this.showSystemMessage(msg.message);
+                this.showSystemMessage(`Error: ${msg.message}`);
                 this.updateStatus('disconnected', 'Error');
+                console.error('Q-Chat Server Error:', msg.message);
                 break;
         }
     }
 
     async initializeWebRTC() {
-        const config = {
-            iceServers: [
+        // Fetch TURN credentials from server (API key hidden)
+        let iceServers = [];
+        try {
+            const response = await fetch('/api/turn-credentials');
+            iceServers = await response.json();
+            console.log('Q-Chat: Using TURN servers for NAT traversal');
+        } catch (err) {
+            console.log('Q-Chat: TURN fetch failed, using STUN fallback');
+            iceServers = [
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' }
-            ]
-        };
+            ];
+        }
+
+        const config = { iceServers };
 
         this.peerConnection = new RTCPeerConnection(config);
 
