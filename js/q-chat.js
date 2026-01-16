@@ -120,7 +120,7 @@ class QChat {
                 ? `${window.location.hostname}:3000`
                 : window.location.host;
 
-            this.ws = new WebSocket(`${protocol}//${host}`);
+            this.ws = new WebSocket(`${protocol}//${host}/ws`);
 
             this.ws.onopen = () => {
                 console.log('Q-Chat: WebSocket connected');
