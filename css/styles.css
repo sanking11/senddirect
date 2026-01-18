@@ -4819,7 +4819,7 @@ body:hover .corner-dot {
 }
 
 .qchat-connect-desc {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     color: var(--text-muted);
     margin-bottom: 1.5rem;
     line-height: 1.5;
