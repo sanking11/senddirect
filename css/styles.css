@@ -2736,6 +2736,447 @@ body {
     50% { transform: translateY(-3px); }
 }
 
+/* Made in New Zealand Section - Futuristic Logo */
+.footer-origin {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(0, 255, 255, 0.1);
+}
+
+.nz-logo-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    padding: 20px 15px;
+}
+
+/* Corner accents */
+.nz-corner-accent {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border: 1px solid #64ffda;
+    opacity: 0.6;
+}
+
+.nz-corner-accent.nz-top-left {
+    top: 10px;
+    left: 10px;
+    border-right: none;
+    border-bottom: none;
+    animation: nzCornerMoveTL 2.5s infinite ease-in-out;
+}
+
+.nz-corner-accent.nz-top-right {
+    top: 10px;
+    right: 10px;
+    border-left: none;
+    border-bottom: none;
+    animation: nzCornerMoveTR 2.5s infinite ease-in-out;
+    animation-delay: 0.625s;
+}
+
+.nz-corner-accent.nz-bottom-left {
+    bottom: 10px;
+    left: 10px;
+    border-right: none;
+    border-top: none;
+    animation: nzCornerMoveBL 2.5s infinite ease-in-out;
+    animation-delay: 1.875s;
+}
+
+.nz-corner-accent.nz-bottom-right {
+    bottom: 10px;
+    right: 10px;
+    border-left: none;
+    border-top: none;
+    animation: nzCornerMoveBR 2.5s infinite ease-in-out;
+    animation-delay: 1.25s;
+}
+
+@keyframes nzCornerMoveTL {
+    0%, 100% { transform: translate(0, 0); opacity: 0.6; }
+    50% { transform: translate(-5px, -5px); opacity: 1; }
+}
+
+@keyframes nzCornerMoveTR {
+    0%, 100% { transform: translate(0, 0); opacity: 0.6; }
+    50% { transform: translate(5px, -5px); opacity: 1; }
+}
+
+@keyframes nzCornerMoveBL {
+    0%, 100% { transform: translate(0, 0); opacity: 0.6; }
+    50% { transform: translate(-5px, 5px); opacity: 1; }
+}
+
+@keyframes nzCornerMoveBR {
+    0%, 100% { transform: translate(0, 0); opacity: 0.6; }
+    50% { transform: translate(5px, 5px); opacity: 1; }
+}
+
+/* Main text with stars */
+.nz-main-text {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.nz-text-wrapper {
+    position: relative;
+}
+
+.nz-text {
+    font-family: 'Orbitron', 'Rajdhani', 'Exo 2', sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    font-style: italic;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #012169;
+    position: relative;
+    animation: nzPulse 3s infinite ease-in-out;
+}
+
+@keyframes nzPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+ 
+}
+
+.nz-underline {
+    
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, #ff4757 20%, #ff4757 80%, transparent 100%);
+    box-shadow: 0 0 15px rgba(255, 71, 87, 0.8),
+                0 0 30px rgba(255, 71, 87, 0.4);
+    animation: nzPulseLine 2s infinite ease-in-out;
+}
+
+@keyframes nzPulseLine {
+    0%, 100% { opacity: 1; transform: scaleX(1); }
+    50% { opacity: 0.7; transform: scaleX(0.98); }
+}
+
+/* Stars container - Southern Cross */
+.nz-stars-container {
+    position: absolute;
+    right: -55px;
+    top: -18px;
+    width: 75px;
+    height: 75px;
+}
+
+.nz-stars-top {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.nz-stars-top .nz-star:nth-child(1) {
+    position: relative;
+    left: 22px;
+}
+
+.nz-stars-top .nz-star:nth-child(2) {
+    margin-top: -12px;
+    margin-left: 22px;
+}
+
+.nz-stars-top .nz-star:nth-child(3) {
+    margin-right: 14px;
+}
+
+.nz-stars-bottom {
+    position: absolute;
+    bottom: -12px;
+    left: 30%;
+    transform: translateX(-50%);
+}
+
+.nz-stars-bottom .nz-star {
+    position: relative;
+    bottom: 18px;
+}
+
+.nz-star {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    animation: nzPulseStar 2s infinite ease-in-out;
+}
+
+.nz-star:nth-child(1) { animation-delay: 0s; }
+.nz-star:nth-child(2) { animation-delay: 0.5s; }
+.nz-star:nth-child(3) { animation-delay: 1s; }
+.nz-stars-bottom .nz-star { animation-delay: 1.5s; }
+
+@keyframes nzPulseStar {
+    0%, 100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 10px rgba(255, 71, 87, 0.8))
+                drop-shadow(0 0 20px rgba(255, 71, 87, 0.4));
+    }
+    50% {
+        transform: scale(1.2);
+        filter: drop-shadow(0 0 20px rgba(255, 71, 87, 1))
+                drop-shadow(0 0 40px rgba(255, 71, 87, 0.6));
+    }
+}
+
+.nz-star svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* QR Code section */
+.nz-barcode-section {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.nz-qr-container {
+    padding: 0;
+    border: 2px solid rgba(100, 255, 218, 0.5);
+    border-radius: 6px;
+    box-shadow: 0 0 20px rgba(100, 255, 218, 0.3),
+                0 0 40px rgba(1, 33, 105, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.nz-qr-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(100, 255, 218, 0.2), transparent);
+    animation: nzBarcodeScan 3s infinite;
+    z-index: 1;
+    pointer-events: none;
+}
+
+@keyframes nzBarcodeScan {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.nz-qr-container svg {
+    display: block;
+    width: 100px;
+    height: 100px;
+}
+
+.nz-barcode-container {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 18px;
+    background: rgba(10, 22, 40, 0.6);
+    border: 1px solid rgba(100, 255, 218, 0.3);
+    border-radius: 3px;
+    box-shadow: 0 0 15px rgba(100, 255, 218, 0.15),
+                inset 0 0 10px rgba(100, 255, 218, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+.nz-barcode-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(100, 255, 218, 0.2), transparent);
+    animation: nzScan 4s infinite;
+}
+
+@keyframes nzScan {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.nz-barcode-svg {
+    width: 100%;
+    height: 35px;
+    display: block;
+}
+
+.nz-bar-rect {
+    filter: drop-shadow(0 0 1px rgba(100, 255, 218, 0.5));
+    animation: nzBarGlow 4s infinite ease-in-out;
+}
+
+@keyframes nzBarGlow {
+    0%, 100% {
+        opacity: 1;
+        filter: drop-shadow(0 0 1px rgba(100, 255, 218, 0.5));
+    }
+    50% {
+        opacity: 0.8;
+        filter: drop-shadow(0 0 3px rgba(100, 255, 218, 0.8));
+    }
+}
+
+.nz-barcode-text {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+  
+    letter-spacing: 6px;
+    color: #012169;
+    font-weight: 700;
+    text-transform: uppercase;
+    text-shadow: 0 0 6px rgba(100, 255, 218, 0.4);
+    animation: nzFlickerText 5s infinite;
+}
+
+@keyframes nzFlickerText {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+.nz-scan-note {
+    
+    font-size: 12px;
+    color: #012169;
+    opacity: 0.5;
+     font-weight: 700;
+    letter-spacing: 1px;
+    text-decoration: none;
+    transition: opacity 0.3s, text-shadow 0.3s;
+}
+
+.nz-scan-note:hover {
+    opacity: 1;
+    text-shadow: 0 0 10px rgba(100, 255, 218, 0.8);
+}
+
+/* Glitch effect on hover */
+.nz-logo-container:hover .nz-text {
+    animation: nzShimmer 3s infinite linear, nzGlitch 0.3s infinite;
+}
+
+@keyframes nzGlitch {
+    0%, 100% { transform: translate(0); }
+    33% { transform: translate(-2px, 2px); }
+    66% { transform: translate(2px, -2px); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .nz-logo-container {
+        padding: 15px 12px;
+    }
+
+    .nz-text {
+        font-size: 20px;
+        letter-spacing: 2px;
+    }
+
+    .nz-stars-container {
+        right: -45px;
+        top: -15px;
+        width: 60px;
+        height: 60px;
+    }
+
+    .nz-star {
+        width: 16px;
+        height: 16px;
+    }
+
+    .nz-stars-top .nz-star:nth-child(1) {
+        left: 18px;
+    }
+
+    .nz-stars-top .nz-star:nth-child(2) {
+        margin-top: -10px;
+        margin-left: 18px;
+    }
+
+    .nz-stars-top .nz-star:nth-child(3) {
+        margin-right: 12px;
+    }
+
+    .nz-stars-bottom {
+        bottom: -10px;
+        left: 30%;
+    }
+
+    .nz-stars-bottom .nz-star {
+        bottom: 15px;
+    }
+
+    .nz-barcode-container {
+        padding: 8px 12px;
+    }
+
+    .nz-barcode-svg {
+        height: 30px;
+    }
+
+    .nz-barcode-text {
+        font-size: 9px;
+        letter-spacing: 5px;
+    }
+
+    .nz-corner-accent {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+@media (max-width: 500px) {
+    .nz-main-text {
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .nz-text {
+        font-size: 16px;
+        letter-spacing: 1px;
+    }
+
+    .nz-stars-container {
+        position: relative;
+        right: auto;
+        top: auto;
+        width: 50px;
+        height: 50px;
+    }
+
+    .nz-star {
+        width: 14px;
+        height: 14px;
+    }
+
+    .nz-barcode-text {
+        font-size: 8px;
+        letter-spacing: 3px;
+    }
+
+    .nz-corner-accent {
+        width: 10px;
+        height: 10px;
+    }
+}
+
 .footer-particles {
     position: absolute;
     inset: 0;
