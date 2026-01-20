@@ -2800,6 +2800,8 @@ body {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
     border-top: 1px solid rgba(0, 255, 255, 0.1);
+    display: flex;
+    justify-content: center;
 }
 
 .nz-logo-container {
@@ -2809,29 +2811,33 @@ body {
     justify-content: center;
     align-items: center;
     gap: 8px;
-    padding: 12px 10px;
+    padding: 18px 15px;
+    background: #012169;
+    border-radius: 6px;
+    min-width: 300px;
+    margin: 0 auto;
 }
 
 /* Corner accents */
 .nz-corner-accent {
     position: absolute;
-    width: 10px;
-    height: 10px;
-    border: 1px solid #64ffda;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #64ffda;
     opacity: 0.6;
 }
 
 .nz-corner-accent.nz-top-left {
-    top: 5px;
-    left: 5px;
+    top: 3px;
+    left: 3px;
     border-right: none;
     border-bottom: none;
     animation: nzCornerMoveTL 2.5s infinite ease-in-out;
 }
 
 .nz-corner-accent.nz-top-right {
-    top: 5px;
-    right: 5px;
+    top: 3px;
+    right: 3px;
     border-left: none;
     border-bottom: none;
     animation: nzCornerMoveTR 2.5s infinite ease-in-out;
@@ -2839,8 +2845,8 @@ body {
 }
 
 .nz-corner-accent.nz-bottom-left {
-    bottom: 5px;
-    left: 5px;
+    bottom: 3px;
+    left: 3px;
     border-right: none;
     border-top: none;
     animation: nzCornerMoveBL 2.5s infinite ease-in-out;
@@ -2848,8 +2854,8 @@ body {
 }
 
 .nz-corner-accent.nz-bottom-right {
-    bottom: 5px;
-    right: 5px;
+    bottom: 3px;
+    right: 3px;
     border-left: none;
     border-top: none;
     animation: nzCornerMoveBR 2.5s infinite ease-in-out;
@@ -2858,22 +2864,22 @@ body {
 
 @keyframes nzCornerMoveTL {
     0%, 100% { transform: translate(0, 0); opacity: 0.6; }
-    50% { transform: translate(-5px, -5px); opacity: 1; }
+    50% { transform: translate(-8px, -8px); opacity: 1; }
 }
 
 @keyframes nzCornerMoveTR {
     0%, 100% { transform: translate(0, 0); opacity: 0.6; }
-    50% { transform: translate(5px, -5px); opacity: 1; }
+    50% { transform: translate(8px, -8px); opacity: 1; }
 }
 
 @keyframes nzCornerMoveBL {
     0%, 100% { transform: translate(0, 0); opacity: 0.6; }
-    50% { transform: translate(-5px, 5px); opacity: 1; }
+    50% { transform: translate(-8px, 8px); opacity: 1; }
 }
 
 @keyframes nzCornerMoveBR {
     0%, 100% { transform: translate(0, 0); opacity: 0.6; }
-    50% { transform: translate(5px, 5px); opacity: 1; }
+    50% { transform: translate(8px, 8px); opacity: 1; }
 }
 
 /* Main text with stars */
@@ -2882,6 +2888,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
+    margin-top: 8px;
 }
 
 .nz-text-wrapper {
@@ -2895,48 +2902,19 @@ body {
     font-style: italic;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: #012169;
-    text-shadow: 0 0 6px rgba(100, 255, 218, 0.4);
+    background: linear-gradient(90deg, #ffffff 0%, #64ffda 50%, #ffffff 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 10px rgba(100, 255, 218, 0.5);
     position: relative;
-    display: inline-flex;
+    animation: nzShimmer 3s infinite linear;
 }
 
-.nz-text .wave-letter {
-    display: inline-block;
-    animation: waveFlag 2s ease-in-out infinite;
-    transform-origin: center bottom;
-}
-
-.nz-text .wave-letter:nth-child(1) { animation-delay: 0s; }
-.nz-text .wave-letter:nth-child(2) { animation-delay: 0.1s; }
-.nz-text .wave-letter:nth-child(3) { animation-delay: 0.2s; }
-.nz-text .wave-letter:nth-child(4) { animation-delay: 0.3s; }
-.nz-text .wave-letter:nth-child(5) { animation-delay: 0.4s; }
-.nz-text .wave-letter:nth-child(6) { animation-delay: 0.5s; }
-.nz-text .wave-letter:nth-child(7) { animation-delay: 0.6s; }
-.nz-text .wave-letter:nth-child(8) { animation-delay: 0.7s; }
-.nz-text .wave-letter:nth-child(9) { animation-delay: 0.8s; }
-.nz-text .wave-letter:nth-child(10) { animation-delay: 0.9s; }
-.nz-text .wave-letter:nth-child(11) { animation-delay: 1.0s; }
-
-.nz-text .wave-space {
-    width: 8px;
-    display: inline-block;
-}
-
-@keyframes waveFlag {
-    0%, 100% {
-        transform: translateY(0) rotate(0deg) skewX(0deg);
-    }
-    25% {
-        transform: translateY(-3px) rotate(2deg) skewX(2deg);
-    }
-    50% {
-        transform: translateY(0) rotate(0deg) skewX(0deg);
-    }
-    75% {
-        transform: translateY(2px) rotate(-1deg) skewX(-1deg);
-    }
+@keyframes nzShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
 
 .nz-underline {
@@ -2960,14 +2938,14 @@ body {
 .nz-stars-container {
     position: absolute;
     right: -30px;
-    top: -14px;
+    top: -4px;
     width: 50px;
     height: 50px;
 }
 
 .nz-stars-top {
     position: absolute;
-    top: -3px;
+    top: -10px;
     right: 5px;
     display: flex;
     gap: 4px;
@@ -2976,7 +2954,7 @@ body {
 
 .nz-stars-top .nz-star:nth-child(1) {
     position: relative;
-    left: 14px;
+    left: 0px;
 }
 
 .nz-stars-top .nz-star:nth-child(2) {
@@ -2990,7 +2968,7 @@ body {
 
 .nz-stars-bottom {
     position: absolute;
-    bottom: -8px;
+    bottom: -18px;
     left: 30%;
     transform: translateX(-50%);
 }
@@ -3001,10 +2979,11 @@ body {
 }
 
 .nz-star {
-    width: 12px;
-    height: 12px;
+    width: 18px;
+    height: 18px;
     position: relative;
     animation: nzPulseStar 2s infinite ease-in-out;
+    filter: drop-shadow(0 0 8px rgba(255, 71, 87, 0.9)) drop-shadow(0 0 15px rgba(255, 71, 87, 0.6));
 }
 
 .nz-star:nth-child(1) { animation-delay: 0s; }
@@ -3015,13 +2994,15 @@ body {
 @keyframes nzPulseStar {
     0%, 100% {
         transform: scale(1);
-        filter: drop-shadow(0 0 10px rgba(255, 71, 87, 0.8))
-                drop-shadow(0 0 20px rgba(255, 71, 87, 0.4));
+        filter: drop-shadow(0 0 12px rgba(255, 71, 87, 1))
+                drop-shadow(0 0 25px rgba(255, 71, 87, 0.7))
+                drop-shadow(0 0 35px rgba(255, 71, 87, 0.4));
     }
     50% {
-        transform: scale(1.2);
-        filter: drop-shadow(0 0 20px rgba(255, 71, 87, 1))
-                drop-shadow(0 0 40px rgba(255, 71, 87, 0.6));
+        transform: scale(1.25);
+        filter: drop-shadow(0 0 18px rgba(255, 71, 87, 1))
+                drop-shadow(0 0 35px rgba(255, 71, 87, 0.8))
+                drop-shadow(0 0 50px rgba(255, 71, 87, 0.5));
     }
 }
 
@@ -3070,8 +3051,8 @@ body {
 
 .nz-qr-container svg {
     display: block;
-    width: 50px;
-    height: 50px;
+    width: 38px;
+    height: 38px;
 }
 
 .nz-barcode-container {
@@ -3130,7 +3111,7 @@ body {
     font-family: 'Orbitron', sans-serif;
     font-size: 9px;
     letter-spacing: 4px;
-    color: #012169;
+    color: #64ffda;
     font-weight: 700;
     text-transform: uppercase;
     text-shadow: 0 0 6px rgba(100, 255, 218, 0.4);
@@ -3144,7 +3125,7 @@ body {
 
 .nz-scan-note {
     font-size: 9px;
-    color: #012169;
+    color: #64ffda;
     text-shadow: 0 0 6px rgba(100, 255, 218, 0.4);
     opacity: 0.98;
     font-weight: 700;

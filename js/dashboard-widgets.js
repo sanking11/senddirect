@@ -546,26 +546,14 @@ class DashboardWidgets {
             y: height - (val / maxVal) * height * 0.9
         }));
 
-        // Draw filled area with smooth bezier curves
+        // Draw filled area with sharp/pointy lines
         ctx.beginPath();
         ctx.moveTo(0, height);
 
         if (points.length > 0) {
-            ctx.lineTo(points[0].x, points[0].y);
-
-            // Use quadratic bezier curves for smooth lines
-            for (let i = 1; i < points.length; i++) {
-                const prev = points[i - 1];
-                const curr = points[i];
-                const midX = (prev.x + curr.x) / 2;
-                const midY = (prev.y + curr.y) / 2;
-                ctx.quadraticCurveTo(prev.x, prev.y, midX, midY);
-            }
-
-            // Complete the curve to the last point
-            if (points.length > 1) {
-                const last = points[points.length - 1];
-                ctx.lineTo(last.x, last.y);
+            // Use straight lines for pointy/jagged appearance
+            for (let i = 0; i < points.length; i++) {
+                ctx.lineTo(points[i].x, points[i].y);
             }
         }
 
@@ -574,22 +562,14 @@ class DashboardWidgets {
         ctx.fillStyle = gradient;
         ctx.fill();
 
-        // Draw smooth line on top
+        // Draw sharp line on top
         ctx.beginPath();
         if (points.length > 0) {
             ctx.moveTo(points[0].x, points[0].y);
 
+            // Use straight lines for pointy appearance
             for (let i = 1; i < points.length; i++) {
-                const prev = points[i - 1];
-                const curr = points[i];
-                const midX = (prev.x + curr.x) / 2;
-                const midY = (prev.y + curr.y) / 2;
-                ctx.quadraticCurveTo(prev.x, prev.y, midX, midY);
-            }
-
-            if (points.length > 1) {
-                const last = points[points.length - 1];
-                ctx.lineTo(last.x, last.y);
+                ctx.lineTo(points[i].x, points[i].y);
             }
         }
         ctx.strokeStyle = '#4ade80';
