@@ -942,6 +942,18 @@ class FileShare {
     updateTransferStatus(text) {
         const el = document.querySelector('.transfer-title');
         if (el) el.textContent = text;
+
+        // Check if transfer is complete and update icon
+        if (text === 'Transfer Complete!') {
+            this.showTransferComplete();
+        }
+    }
+
+    showTransferComplete() {
+        const icon = document.querySelector('.transfer-icon');
+        const title = document.querySelector('.transfer-title');
+        if (icon) icon.classList.add('completed');
+        if (title) title.classList.add('completed');
     }
 
     updateConnectionStatus(text) {

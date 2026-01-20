@@ -1666,6 +1666,65 @@ body {
     color: var(--accent-green);
     margin-bottom: 1rem;
     animation: spin 2s linear infinite;
+    transition: all 0.5s ease;
+}
+
+/* Transfer Complete State */
+.transfer-icon.completed {
+    animation: none;
+    transform: scale(1.2);
+}
+
+.transfer-icon.completed svg {
+    display: none;
+}
+
+.transfer-icon.completed::after {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 32px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%234ade80' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3E%3Cpolyline points='22 4 12 14.01 9 11.01'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    animation: checkmarkPop 0.6s ease-out forwards, checkmarkGlow 2s ease-in-out infinite 0.6s;
+}
+
+@keyframes checkmarkPop {
+    0% {
+        transform: scale(0) rotate(-45deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.3) rotate(0deg);
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+@keyframes checkmarkGlow {
+    0%, 100% {
+        filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.6));
+    }
+    50% {
+        filter: drop-shadow(0 0 20px rgba(74, 222, 128, 1)) drop-shadow(0 0 40px rgba(74, 222, 128, 0.5));
+    }
+}
+
+.transfer-title.completed {
+    color: var(--accent-green);
+    animation: titleGlow 2s ease-in-out infinite;
+}
+
+@keyframes titleGlow {
+    0%, 100% {
+        text-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+    }
+    50% {
+        text-shadow: 0 0 20px rgba(74, 222, 128, 0.8), 0 0 30px rgba(74, 222, 128, 0.4);
+    }
 }
 
 .transfer-title {
@@ -2749,30 +2808,30 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 15px;
-    padding: 20px 15px;
+    gap: 8px;
+    padding: 12px 10px;
 }
 
 /* Corner accents */
 .nz-corner-accent {
     position: absolute;
-    width: 15px;
-    height: 15px;
+    width: 10px;
+    height: 10px;
     border: 1px solid #64ffda;
     opacity: 0.6;
 }
 
 .nz-corner-accent.nz-top-left {
-    top: 10px;
-    left: 10px;
+    top: 5px;
+    left: 5px;
     border-right: none;
     border-bottom: none;
     animation: nzCornerMoveTL 2.5s infinite ease-in-out;
 }
 
 .nz-corner-accent.nz-top-right {
-    top: 10px;
-    right: 10px;
+    top: 5px;
+    right: 5px;
     border-left: none;
     border-bottom: none;
     animation: nzCornerMoveTR 2.5s infinite ease-in-out;
@@ -2780,8 +2839,8 @@ body {
 }
 
 .nz-corner-accent.nz-bottom-left {
-    bottom: 10px;
-    left: 10px;
+    bottom: 5px;
+    left: 5px;
     border-right: none;
     border-top: none;
     animation: nzCornerMoveBL 2.5s infinite ease-in-out;
@@ -2789,8 +2848,8 @@ body {
 }
 
 .nz-corner-accent.nz-bottom-right {
-    bottom: 10px;
-    right: 10px;
+    bottom: 5px;
+    right: 5px;
     border-left: none;
     border-top: none;
     animation: nzCornerMoveBR 2.5s infinite ease-in-out;
@@ -2822,7 +2881,7 @@ body {
     position: relative;
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 12px;
 }
 
 .nz-text-wrapper {
@@ -2831,10 +2890,10 @@ body {
 
 .nz-text {
     font-family: 'Orbitron', 'Rajdhani', 'Exo 2', sans-serif;
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 600;
     font-style: italic;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     text-transform: uppercase;
     color: #012169;
     position: relative;
@@ -2848,15 +2907,14 @@ body {
 }
 
 .nz-underline {
-    
     position: absolute;
-    bottom: -6px;
+    bottom: -4px;
     left: 0;
     width: 100%;
     height: 2px;
     background: linear-gradient(90deg, transparent 0%, #ff4757 20%, #ff4757 80%, transparent 100%);
-    box-shadow: 0 0 15px rgba(255, 71, 87, 0.8),
-                0 0 30px rgba(255, 71, 87, 0.4);
+    box-shadow: 0 0 10px rgba(255, 71, 87, 0.8),
+                0 0 20px rgba(255, 71, 87, 0.4);
     animation: nzPulseLine 2s infinite ease-in-out;
 }
 
@@ -2868,50 +2926,50 @@ body {
 /* Stars container - Southern Cross */
 .nz-stars-container {
     position: absolute;
-    right: -55px;
-    top: -18px;
-    width: 75px;
-    height: 75px;
+    right: -30px;
+    top: -14px;
+    width: 50px;
+    height: 50px;
 }
 
 .nz-stars-top {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: -3px;
+    right: 5px;
     display: flex;
-    gap: 8px;
+    gap: 4px;
     align-items: flex-start;
 }
 
 .nz-stars-top .nz-star:nth-child(1) {
     position: relative;
-    left: 22px;
+    left: 14px;
 }
 
 .nz-stars-top .nz-star:nth-child(2) {
-    margin-top: -12px;
-    margin-left: 22px;
+    margin-top: -8px;
+    margin-left: 14px;
 }
 
 .nz-stars-top .nz-star:nth-child(3) {
-    margin-right: 14px;
+    margin-right: 8px;
 }
 
 .nz-stars-bottom {
     position: absolute;
-    bottom: -12px;
+    bottom: -8px;
     left: 30%;
     transform: translateX(-50%);
 }
 
 .nz-stars-bottom .nz-star {
     position: relative;
-    bottom: 18px;
+    bottom: 8px;
 }
 
 .nz-star {
-    width: 20px;
-    height: 20px;
+    width: 12px;
+    height: 12px;
     position: relative;
     animation: nzPulseStar 2s infinite ease-in-out;
 }
@@ -2945,15 +3003,16 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
+    margin-top: 4px;
 }
 
 .nz-qr-container {
     padding: 0;
-    border: 2px solid rgba(100, 255, 218, 0.5);
-    border-radius: 6px;
-    box-shadow: 0 0 20px rgba(100, 255, 218, 0.3),
-                0 0 40px rgba(1, 33, 105, 0.4);
+    border: 1px solid rgba(100, 255, 218, 0.5);
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(100, 255, 218, 0.3),
+                0 0 20px rgba(1, 33, 105, 0.4);
     position: relative;
     overflow: hidden;
 }
@@ -2978,8 +3037,8 @@ body {
 
 .nz-qr-container svg {
     display: block;
-    width: 100px;
-    height: 100px;
+    width: 50px;
+    height: 50px;
 }
 
 .nz-barcode-container {
@@ -3037,8 +3096,7 @@ body {
 .nz-barcode-text {
     font-family: 'Orbitron', sans-serif;
     font-size: 9px;
-  
-    letter-spacing: 6px;
+    letter-spacing: 4px;
     color: #012169;
     font-weight: 700;
     text-transform: uppercase;
@@ -3052,11 +3110,10 @@ body {
 }
 
 .nz-scan-note {
-    
-    font-size: 12px;
+    font-size: 9px;
     color: #012169;
-    opacity: 0.5;
-     font-weight: 700;
+    opacity: 0.98;
+    font-weight: 700;
     letter-spacing: 1px;
     text-decoration: none;
     transition: opacity 0.3s, text-shadow 0.3s;
@@ -3067,89 +3124,91 @@ body {
     text-shadow: 0 0 10px rgba(100, 255, 218, 0.8);
 }
 
-/* Glitch effect on hover */
-.nz-logo-container:hover .nz-text {
-    animation: nzShimmer 3s infinite linear, nzGlitch 0.3s infinite;
+/* Link styling for container */
+.nz-logo-link {
+    text-decoration: none;
+    display: block;
+    cursor: pointer;
+    transition: transform 0.2s ease;
 }
 
-@keyframes nzGlitch {
-    0%, 100% { transform: translate(0); }
-    33% { transform: translate(-2px, 2px); }
-    66% { transform: translate(2px, -2px); }
+.nz-logo-link:hover {
+    transform: scale(1.02);
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .nz-logo-container {
-        padding: 15px 12px;
+        padding: 10px 8px;
     }
 
     .nz-text {
-        font-size: 20px;
-        letter-spacing: 2px;
+        font-size: 14px;
+        letter-spacing: 1px;
     }
 
     .nz-stars-container {
-        right: -45px;
-        top: -15px;
-        width: 60px;
-        height: 60px;
+        right: -28px;
+        top: -8px;
+        width: 40px;
+        height: 40px;
     }
 
     .nz-star {
-        width: 16px;
-        height: 16px;
+        width: 10px;
+        height: 10px;
     }
 
     .nz-stars-top .nz-star:nth-child(1) {
-        left: 18px;
+        left: 12px;
     }
 
     .nz-stars-top .nz-star:nth-child(2) {
-        margin-top: -10px;
-        margin-left: 18px;
+        margin-top: -6px;
+        margin-left: 12px;
     }
 
     .nz-stars-top .nz-star:nth-child(3) {
-        margin-right: 12px;
+        margin-right: 6px;
     }
 
     .nz-stars-bottom {
-        bottom: -10px;
+        bottom: -6px;
         left: 30%;
     }
 
     .nz-stars-bottom .nz-star {
-        bottom: 15px;
+        bottom: 10px;
     }
 
-    .nz-barcode-container {
-        padding: 8px 12px;
-    }
-
-    .nz-barcode-svg {
-        height: 30px;
+    .nz-qr-container svg {
+        width: 40px;
+        height: 40px;
     }
 
     .nz-barcode-text {
-        font-size: 9px;
-        letter-spacing: 5px;
+        font-size: 6px;
+        letter-spacing: 3px;
+    }
+
+    .nz-scan-note {
+        font-size: 7px;
     }
 
     .nz-corner-accent {
-        width: 12px;
-        height: 12px;
+        width: 8px;
+        height: 8px;
     }
 }
 
 @media (max-width: 500px) {
     .nz-main-text {
         flex-direction: column;
-        gap: 30px;
+        gap: 20px;
     }
 
     .nz-text {
-        font-size: 16px;
+        font-size: 12px;
         letter-spacing: 1px;
     }
 
@@ -3157,23 +3216,28 @@ body {
         position: relative;
         right: auto;
         top: auto;
-        width: 50px;
-        height: 50px;
+        width: 35px;
+        height: 35px;
     }
 
     .nz-star {
-        width: 14px;
-        height: 14px;
+        width: 8px;
+        height: 8px;
+    }
+
+    .nz-qr-container svg {
+        width: 35px;
+        height: 35px;
     }
 
     .nz-barcode-text {
-        font-size: 8px;
-        letter-spacing: 3px;
+        font-size: 5px;
+        letter-spacing: 2px;
     }
 
     .nz-corner-accent {
-        width: 10px;
-        height: 10px;
+        width: 6px;
+        height: 6px;
     }
 }
 
@@ -5406,6 +5470,115 @@ body:hover .corner-dot {
     background: rgba(74, 222, 128, 0.2);
 }
 
+/* Matrix Sphere Animation */
+.matrix-sphere-container {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.matrix-sphere {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    transform-style: preserve-3d;
+    animation: matrixSphereSpin 8s linear infinite;
+}
+
+.matrix-sphere.fade-out {
+    animation: matrixSphereFadeOut 0.8s ease-out forwards;
+}
+
+.matrix-digit {
+    position: absolute;
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    color: #4ade80;
+    text-shadow: 0 0 10px #4ade80, 0 0 20px #4ade80;
+    animation: digitFlicker 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes matrixSphereSpin {
+    0% {
+        transform: rotateX(0deg) rotateY(0deg);
+    }
+    100% {
+        transform: rotateX(360deg) rotateY(360deg);
+    }
+}
+
+@keyframes matrixSphereFadeOut {
+    0% {
+        opacity: 1;
+        transform: scale(1) rotateX(0deg) rotateY(0deg);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.2) rotateX(180deg) rotateY(180deg);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0) rotateX(360deg) rotateY(360deg);
+    }
+}
+
+@keyframes digitFlicker {
+    0% {
+        opacity: 0.6;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.matrix-sphere-status {
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem;
+    color: var(--accent-green);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-top: 0.5rem;
+    animation: statusPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+    0%, 100% {
+        opacity: 0.6;
+        text-shadow: 0 0 5px rgba(74, 222, 128, 0.3);
+    }
+    50% {
+        opacity: 1;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.8);
+    }
+}
+
+/* Room code reveal animation */
+.qchat-room-code.hidden,
+.qchat-waiting.hidden {
+    display: none;
+}
+
+.qchat-room-code.reveal {
+    animation: roomCodeReveal 0.6s ease-out forwards;
+}
+
+@keyframes roomCodeReveal {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 .qchat-waiting {
     font-size: 0.8rem;
     color: var(--text-muted);
@@ -5604,5 +5777,231 @@ body:hover .corner-dot {
         bottom: 15px;
         width: 55px;
         height: 55px;
+    }
+}
+
+/* ========================================
+   GREEN CORNER ACCENTS FOR CARDS/HEADER/FOOTER
+   ======================================== */
+
+/* Corner accent base style */
+.corner-accent {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #4ade80;
+    opacity: 0.7;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* Top-left corner */
+.corner-accent.corner-tl {
+    top: 8px;
+    left: 8px;
+    border-right: none;
+    border-bottom: none;
+    animation: cornerMoveTL 2.5s infinite ease-in-out;
+}
+
+/* Top-right corner */
+.corner-accent.corner-tr {
+    top: 8px;
+    right: 8px;
+    border-left: none;
+    border-bottom: none;
+    animation: cornerMoveTR 2.5s infinite ease-in-out;
+    animation-delay: 0.625s;
+}
+
+/* Bottom-left corner */
+.corner-accent.corner-bl {
+    bottom: 8px;
+    left: 8px;
+    border-right: none;
+    border-top: none;
+    animation: cornerMoveBL 2.5s infinite ease-in-out;
+    animation-delay: 1.875s;
+}
+
+/* Bottom-right corner */
+.corner-accent.corner-br {
+    bottom: 8px;
+    right: 8px;
+    border-left: none;
+    border-top: none;
+    animation: cornerMoveBR 2.5s infinite ease-in-out;
+    animation-delay: 1.25s;
+}
+
+/* Corner movement animations */
+@keyframes cornerMoveTL {
+    0%, 100% {
+        transform: translate(0, 0);
+        opacity: 0.5;
+        box-shadow: 0 0 5px rgba(74, 222, 128, 0.3);
+    }
+    50% {
+        transform: translate(-4px, -4px);
+        opacity: 1;
+        box-shadow: 0 0 12px rgba(74, 222, 128, 0.8);
+    }
+}
+
+@keyframes cornerMoveTR {
+    0%, 100% {
+        transform: translate(0, 0);
+        opacity: 0.5;
+        box-shadow: 0 0 5px rgba(74, 222, 128, 0.3);
+    }
+    50% {
+        transform: translate(4px, -4px);
+        opacity: 1;
+        box-shadow: 0 0 12px rgba(74, 222, 128, 0.8);
+    }
+}
+
+@keyframes cornerMoveBL {
+    0%, 100% {
+        transform: translate(0, 0);
+        opacity: 0.5;
+        box-shadow: 0 0 5px rgba(74, 222, 128, 0.3);
+    }
+    50% {
+        transform: translate(-4px, 4px);
+        opacity: 1;
+        box-shadow: 0 0 12px rgba(74, 222, 128, 0.8);
+    }
+}
+
+@keyframes cornerMoveBR {
+    0%, 100% {
+        transform: translate(0, 0);
+        opacity: 0.5;
+        box-shadow: 0 0 5px rgba(74, 222, 128, 0.3);
+    }
+    50% {
+        transform: translate(4px, 4px);
+        opacity: 1;
+        box-shadow: 0 0 12px rgba(74, 222, 128, 0.8);
+    }
+}
+
+/* Hover enhancement for cards and sections */
+.feature-card:hover .corner-accent,
+.header:hover .corner-accent,
+.footer-animated:hover .corner-accent,
+.file-drop-zone:hover .corner-accent,
+.widget:hover .corner-accent,
+.step-card:hover .corner-accent,
+.content-card:hover .corner-accent,
+.info-card:hover .corner-accent,
+.policy-section:hover .corner-accent,
+.page-card:hover .corner-accent {
+    border-color: #22c55e;
+    opacity: 1;
+}
+
+.feature-card:hover .corner-accent.corner-tl,
+.header:hover .corner-accent.corner-tl,
+.footer-animated:hover .corner-accent.corner-tl,
+.file-drop-zone:hover .corner-accent.corner-tl,
+.widget:hover .corner-accent.corner-tl,
+.step-card:hover .corner-accent.corner-tl,
+.content-card:hover .corner-accent.corner-tl,
+.info-card:hover .corner-accent.corner-tl,
+.policy-section:hover .corner-accent.corner-tl,
+.page-card:hover .corner-accent.corner-tl {
+    animation: cornerMoveTLHover 1.5s infinite ease-in-out;
+}
+
+.feature-card:hover .corner-accent.corner-tr,
+.header:hover .corner-accent.corner-tr,
+.footer-animated:hover .corner-accent.corner-tr,
+.file-drop-zone:hover .corner-accent.corner-tr,
+.widget:hover .corner-accent.corner-tr,
+.step-card:hover .corner-accent.corner-tr,
+.content-card:hover .corner-accent.corner-tr,
+.info-card:hover .corner-accent.corner-tr,
+.policy-section:hover .corner-accent.corner-tr,
+.page-card:hover .corner-accent.corner-tr {
+    animation: cornerMoveTRHover 1.5s infinite ease-in-out;
+}
+
+.feature-card:hover .corner-accent.corner-bl,
+.header:hover .corner-accent.corner-bl,
+.footer-animated:hover .corner-accent.corner-bl,
+.file-drop-zone:hover .corner-accent.corner-bl,
+.widget:hover .corner-accent.corner-bl,
+.step-card:hover .corner-accent.corner-bl,
+.content-card:hover .corner-accent.corner-bl,
+.info-card:hover .corner-accent.corner-bl,
+.policy-section:hover .corner-accent.corner-bl,
+.page-card:hover .corner-accent.corner-bl {
+    animation: cornerMoveBLHover 1.5s infinite ease-in-out;
+}
+
+.feature-card:hover .corner-accent.corner-br,
+.header:hover .corner-accent.corner-br,
+.footer-animated:hover .corner-accent.corner-br,
+.file-drop-zone:hover .corner-accent.corner-br,
+.widget:hover .corner-accent.corner-br,
+.step-card:hover .corner-accent.corner-br,
+.content-card:hover .corner-accent.corner-br,
+.info-card:hover .corner-accent.corner-br,
+.policy-section:hover .corner-accent.corner-br,
+.page-card:hover .corner-accent.corner-br {
+    animation: cornerMoveBRHover 1.5s infinite ease-in-out;
+}
+
+@keyframes cornerMoveTLHover {
+    0%, 100% {
+        transform: translate(0, 0);
+        opacity: 0.8;
+        box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+    }
+    50% {
+        transform: translate(-6px, -6px);
+        opacity: 1;
+        box-shadow: 0 0 15px rgba(34, 197, 94, 1);
+    }
+}
+
+@keyframes cornerMoveTRHover {
+    0%, 100% {
+        transform: translate(0, 0);
+        opacity: 0.8;
+        box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+    }
+    50% {
+        transform: translate(6px, -6px);
+        opacity: 1;
+        box-shadow: 0 0 15px rgba(34, 197, 94, 1);
+    }
+}
+
+@keyframes cornerMoveBLHover {
+    0%, 100% {
+        transform: translate(0, 0);
+        opacity: 0.8;
+        box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+    }
+    50% {
+        transform: translate(-6px, 6px);
+        opacity: 1;
+        box-shadow: 0 0 15px rgba(34, 197, 94, 1);
+    }
+}
+
+@keyframes cornerMoveBRHover {
+    0%, 100% {
+        transform: translate(0, 0);
+        opacity: 0.8;
+        box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+    }
+    50% {
+        transform: translate(6px, 6px);
+        opacity: 1;
+        box-shadow: 0 0 15px rgba(34, 197, 94, 1);
     }
 }

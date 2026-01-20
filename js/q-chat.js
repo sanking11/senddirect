@@ -366,7 +366,117 @@ class QChat {
     showRoomInfo() {
         if (this.connectSection) this.connectSection.style.display = 'none';
         if (this.roomInfoSection) this.roomInfoSection.style.display = 'block';
-        if (this.roomCodeEl) this.roomCodeEl.textContent = this.roomId;
+
+        // Start the matrix sphere animation sequence
+        this.startMatrixSphereAnimation();
+    }
+
+    startMatrixSphereAnimation() {
+        const sphereContainer = document.getElementById('matrixSphereContainer');
+        const sphere = document.getElementById('matrixSphere');
+        const statusText = document.getElementById('matrixSphereStatus');
+        const roomCodeSection = document.getElementById('qchatRoomCodeSection');
+        const waitingText = document.getElementById('qchatWaiting');
+
+        if (!sphere || !sphereContainer) {
+            // Fallback: show code immediately if animation elements don't exist
+            if (this.roomCodeEl) this.roomCodeEl.textContent = this.roomId;
+            return;
+        }
+
+        // Create the matrix sphere with random digits
+        this.createMatrixSphere(sphere);
+
+        // Status messages sequence
+        const statusMessages = [
+            'Generating Quantum Tunnel...',
+            'Encrypting Neural Pathway...',
+            'Establishing Secure Link...',
+            'Finalizing Quantum Code...'
+        ];
+
+        let statusIndex = 0;
+        const statusInterval = setInterval(() => {
+            statusIndex++;
+            if (statusIndex < statusMessages.length && statusText) {
+                statusText.textContent = statusMessages[statusIndex];
+            }
+        }, 600);
+
+        // After animation, reveal the code
+        setTimeout(() => {
+            clearInterval(statusInterval);
+
+            // Fade out the sphere
+            sphere.classList.add('fade-out');
+            if (statusText) statusText.style.display = 'none';
+
+            // After fade out, hide sphere and reveal code
+            setTimeout(() => {
+                sphereContainer.style.display = 'none';
+
+                // Set and reveal the room code
+                if (this.roomCodeEl) this.roomCodeEl.textContent = this.roomId;
+                if (roomCodeSection) {
+                    roomCodeSection.classList.remove('hidden');
+                    roomCodeSection.classList.add('reveal');
+                }
+                if (waitingText) {
+                    waitingText.classList.remove('hidden');
+                }
+            }, 800);
+        }, 2500);
+    }
+
+    createMatrixSphere(container) {
+        container.innerHTML = '';
+        const numDigits = 120;
+        const radius = 60;
+
+        for (let i = 0; i < numDigits; i++) {
+            const digit = document.createElement('span');
+            digit.className = 'matrix-digit';
+            digit.textContent = Math.floor(Math.random() * 10);
+
+            // Distribute points on a sphere using golden spiral
+            const phi = Math.acos(1 - 2 * (i + 0.5) / numDigits);
+            const theta = Math.PI * (1 + Math.sqrt(5)) * i;
+
+            const x = radius * Math.sin(phi) * Math.cos(theta);
+            const y = radius * Math.sin(phi) * Math.sin(theta);
+            const z = radius * Math.cos(phi);
+
+            digit.style.transform = `translate3d(${x}px, ${y}px, ${z}px)`;
+            digit.style.left = '50%';
+            digit.style.top = '50%';
+            digit.style.marginLeft = '-7px';
+            digit.style.marginTop = '-10px';
+
+            // Random animation delay for flickering effect
+            digit.style.animationDelay = `${Math.random() * 0.5}s`;
+
+            // Vary opacity based on z position for depth
+            const opacity = 0.4 + (z + radius) / (2 * radius) * 0.6;
+            digit.style.opacity = opacity;
+
+            container.appendChild(digit);
+        }
+
+        // Randomly change digits periodically
+        this.digitChangeInterval = setInterval(() => {
+            const digits = container.querySelectorAll('.matrix-digit');
+            const randomDigit = digits[Math.floor(Math.random() * digits.length)];
+            if (randomDigit) {
+                randomDigit.textContent = Math.floor(Math.random() * 10);
+            }
+        }, 50);
+
+        // Clear interval after animation completes
+        setTimeout(() => {
+            if (this.digitChangeInterval) {
+                clearInterval(this.digitChangeInterval);
+            }
+        }, 3500);
     }
 
     showChatUI() {
