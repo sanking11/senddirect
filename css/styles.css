@@ -2896,14 +2896,47 @@ body {
     letter-spacing: 2px;
     text-transform: uppercase;
     color: #012169;
+    text-shadow: 0 0 6px rgba(100, 255, 218, 0.4);
     position: relative;
-    animation: nzPulse 3s infinite ease-in-out;
+    display: inline-flex;
 }
 
-@keyframes nzPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
- 
+.nz-text .wave-letter {
+    display: inline-block;
+    animation: waveFlag 2s ease-in-out infinite;
+    transform-origin: center bottom;
+}
+
+.nz-text .wave-letter:nth-child(1) { animation-delay: 0s; }
+.nz-text .wave-letter:nth-child(2) { animation-delay: 0.1s; }
+.nz-text .wave-letter:nth-child(3) { animation-delay: 0.2s; }
+.nz-text .wave-letter:nth-child(4) { animation-delay: 0.3s; }
+.nz-text .wave-letter:nth-child(5) { animation-delay: 0.4s; }
+.nz-text .wave-letter:nth-child(6) { animation-delay: 0.5s; }
+.nz-text .wave-letter:nth-child(7) { animation-delay: 0.6s; }
+.nz-text .wave-letter:nth-child(8) { animation-delay: 0.7s; }
+.nz-text .wave-letter:nth-child(9) { animation-delay: 0.8s; }
+.nz-text .wave-letter:nth-child(10) { animation-delay: 0.9s; }
+.nz-text .wave-letter:nth-child(11) { animation-delay: 1.0s; }
+
+.nz-text .wave-space {
+    width: 8px;
+    display: inline-block;
+}
+
+@keyframes waveFlag {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg) skewX(0deg);
+    }
+    25% {
+        transform: translateY(-3px) rotate(2deg) skewX(2deg);
+    }
+    50% {
+        transform: translateY(0) rotate(0deg) skewX(0deg);
+    }
+    75% {
+        transform: translateY(2px) rotate(-1deg) skewX(-1deg);
+    }
 }
 
 .nz-underline {
@@ -3112,6 +3145,7 @@ body {
 .nz-scan-note {
     font-size: 9px;
     color: #012169;
+    text-shadow: 0 0 6px rgba(100, 255, 218, 0.4);
     opacity: 0.98;
     font-weight: 700;
     letter-spacing: 1px;
@@ -5897,7 +5931,10 @@ body:hover .corner-dot {
 .content-card:hover .corner-accent,
 .info-card:hover .corner-accent,
 .policy-section:hover .corner-accent,
-.page-card:hover .corner-accent {
+.page-card:hover .corner-accent,
+.hero-card:hover .corner-accent,
+.share-link-section:hover .corner-accent,
+.transfer-section:hover .corner-accent {
     border-color: #22c55e;
     opacity: 1;
 }
@@ -5911,7 +5948,10 @@ body:hover .corner-dot {
 .content-card:hover .corner-accent.corner-tl,
 .info-card:hover .corner-accent.corner-tl,
 .policy-section:hover .corner-accent.corner-tl,
-.page-card:hover .corner-accent.corner-tl {
+.page-card:hover .corner-accent.corner-tl,
+.hero-card:hover .corner-accent.corner-tl,
+.share-link-section:hover .corner-accent.corner-tl,
+.transfer-section:hover .corner-accent.corner-tl {
     animation: cornerMoveTLHover 1.5s infinite ease-in-out;
 }
 
@@ -5924,7 +5964,10 @@ body:hover .corner-dot {
 .content-card:hover .corner-accent.corner-tr,
 .info-card:hover .corner-accent.corner-tr,
 .policy-section:hover .corner-accent.corner-tr,
-.page-card:hover .corner-accent.corner-tr {
+.page-card:hover .corner-accent.corner-tr,
+.hero-card:hover .corner-accent.corner-tr,
+.share-link-section:hover .corner-accent.corner-tr,
+.transfer-section:hover .corner-accent.corner-tr {
     animation: cornerMoveTRHover 1.5s infinite ease-in-out;
 }
 
@@ -5937,7 +5980,10 @@ body:hover .corner-dot {
 .content-card:hover .corner-accent.corner-bl,
 .info-card:hover .corner-accent.corner-bl,
 .policy-section:hover .corner-accent.corner-bl,
-.page-card:hover .corner-accent.corner-bl {
+.page-card:hover .corner-accent.corner-bl,
+.hero-card:hover .corner-accent.corner-bl,
+.share-link-section:hover .corner-accent.corner-bl,
+.transfer-section:hover .corner-accent.corner-bl {
     animation: cornerMoveBLHover 1.5s infinite ease-in-out;
 }
 
@@ -5950,7 +5996,10 @@ body:hover .corner-dot {
 .content-card:hover .corner-accent.corner-br,
 .info-card:hover .corner-accent.corner-br,
 .policy-section:hover .corner-accent.corner-br,
-.page-card:hover .corner-accent.corner-br {
+.page-card:hover .corner-accent.corner-br,
+.hero-card:hover .corner-accent.corner-br,
+.share-link-section:hover .corner-accent.corner-br,
+.transfer-section:hover .corner-accent.corner-br {
     animation: cornerMoveBRHover 1.5s infinite ease-in-out;
 }
 

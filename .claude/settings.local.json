@@ -21,7 +21,9 @@
       "Bash(gh --version:*)",
       "Bash(git remote add:*)",
       "Bash(git push:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(for:*)",
+      "Bash(done)"
     ]
   }
 }
