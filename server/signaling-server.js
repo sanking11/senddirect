@@ -5,43 +5,92 @@ const WebSocket = require('ws');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
+const { Pool } = require('pg');
 
 const PORT = process.env.PORT || 3000;
 const STATIC_DIR = path.join(__dirname, '..');
-const STATS_FILE = path.join(__dirname, 'global-stats.json');
 
-// Global stats storage
-let globalStats = {
-    totalFiles: 0,
-    totalBytes: 0,
-    totalSessions: 0,
-    totalDuration: 0
-};
+// PostgreSQL connection (uses DATABASE_URL from Render)
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+});
 
-// Load stats from file on startup
-function loadGlobalStats() {
+// Initialize database table
+async function initDatabase() {
     try {
-        if (fs.existsSync(STATS_FILE)) {
-            const data = fs.readFileSync(STATS_FILE, 'utf8');
-            globalStats = JSON.parse(data);
-            console.log('Global stats loaded:', globalStats);
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS global_stats (
+                id INTEGER PRIMARY KEY DEFAULT 1,
+                total_files BIGINT DEFAULT 0,
+                total_bytes BIGINT DEFAULT 0,
+                total_sessions BIGINT DEFAULT 0,
+                total_duration DOUBLE PRECISION DEFAULT 0,
+                updated_at TIMESTAMP DEFAULT NOW(),
+                CONSTRAINT single_row CHECK (id = 1)
+            )
+        `);
+        // Insert initial row if not exists
+        await pool.query(`
+            INSERT INTO global_stats (id) VALUES (1)
+            ON CONFLICT (id) DO NOTHING
+        `);
+        console.log('Database initialized successfully');
+    } catch (e) {
+        console.error('Database init error:', e.message);
+    }
+}
+
+// Get stats from database
+async function getGlobalStats() {
+    try {
+        const result = await pool.query('SELECT * FROM global_stats WHERE id = 1');
+        if (result.rows.length > 0) {
+            const row = result.rows[0];
+            return {
+                totalFiles: parseInt(row.total_files) || 0,
+                totalBytes: parseInt(row.total_bytes) || 0,
+                totalSessions: parseInt(row.total_sessions) || 0,
+                totalDuration: parseFloat(row.total_duration) || 0
+            };
         }
     } catch (e) {
-        console.error('Error loading stats:', e.message);
+        console.error('Error getting stats:', e.message);
     }
+    return { totalFiles: 0, totalBytes: 0, totalSessions: 0, totalDuration: 0 };
 }
 
-// Save stats to file
-function saveGlobalStats() {
+// Update stats in database
+async function updateGlobalStats(files, bytes, duration) {
     try {
-        fs.writeFileSync(STATS_FILE, JSON.stringify(globalStats, null, 2));
+        const result = await pool.query(`
+            UPDATE global_stats
+            SET total_files = total_files + $1,
+                total_bytes = total_bytes + $2,
+                total_sessions = total_sessions + 1,
+                total_duration = total_duration + $3,
+                updated_at = NOW()
+            WHERE id = 1
+            RETURNING *
+        `, [files, bytes, duration]);
+
+        if (result.rows.length > 0) {
+            const row = result.rows[0];
+            return {
+                totalFiles: parseInt(row.total_files) || 0,
+                totalBytes: parseInt(row.total_bytes) || 0,
+                totalSessions: parseInt(row.total_sessions) || 0,
+                totalDuration: parseFloat(row.total_duration) || 0
+            };
+        }
     } catch (e) {
-        console.error('Error saving stats:', e.message);
+        console.error('Error updating stats:', e.message);
     }
+    return null;
 }
 
-// Load stats on startup
-loadGlobalStats();
+// Initialize database on startup
+initDatabase();
 
 // HTTP server for static files
 const server = http.createServer((req, res) => {
@@ -83,8 +132,13 @@ const server = http.createServer((req, res) => {
 
     // GET global stats
     if (req.url === '/api/stats' && req.method === 'GET') {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(globalStats));
+        getGlobalStats().then(stats => {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(stats));
+        }).catch(err => {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Database error' }));
+        });
         return;
     }
 
@@ -92,26 +146,22 @@ const server = http.createServer((req, res) => {
     if (req.url === '/api/stats' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => body += chunk);
-        req.on('end', () => {
+        req.on('end', async () => {
             try {
                 const data = JSON.parse(body);
-                // Validate and update stats
-                if (typeof data.files === 'number' && data.files > 0) {
-                    globalStats.totalFiles += data.files;
-                }
-                if (typeof data.bytes === 'number' && data.bytes > 0) {
-                    globalStats.totalBytes += data.bytes;
-                }
-                if (typeof data.duration === 'number' && data.duration > 0) {
-                    globalStats.totalDuration += data.duration;
-                }
-                globalStats.totalSessions += 1;
+                const files = (typeof data.files === 'number' && data.files > 0) ? data.files : 0;
+                const bytes = (typeof data.bytes === 'number' && data.bytes > 0) ? data.bytes : 0;
+                const duration = (typeof data.duration === 'number' && data.duration > 0) ? data.duration : 0;
 
-                // Save to file
-                saveGlobalStats();
+                const stats = await updateGlobalStats(files, bytes, duration);
 
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: true, stats: globalStats }));
+                if (stats) {
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: true, stats }));
+                } else {
+                    res.writeHead(500, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: 'Failed to update stats' }));
+                }
             } catch (e) {
                 res.writeHead(400, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ error: 'Invalid JSON' }));
