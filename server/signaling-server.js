@@ -8,6 +8,40 @@ const fs = require('fs');
 
 const PORT = process.env.PORT || 3000;
 const STATIC_DIR = path.join(__dirname, '..');
+const STATS_FILE = path.join(__dirname, 'global-stats.json');
+
+// Global stats storage
+let globalStats = {
+    totalFiles: 0,
+    totalBytes: 0,
+    totalSessions: 0,
+    totalDuration: 0
+};
+
+// Load stats from file on startup
+function loadGlobalStats() {
+    try {
+        if (fs.existsSync(STATS_FILE)) {
+            const data = fs.readFileSync(STATS_FILE, 'utf8');
+            globalStats = JSON.parse(data);
+            console.log('Global stats loaded:', globalStats);
+        }
+    } catch (e) {
+        console.error('Error loading stats:', e.message);
+    }
+}
+
+// Save stats to file
+function saveGlobalStats() {
+    try {
+        fs.writeFileSync(STATS_FILE, JSON.stringify(globalStats, null, 2));
+    } catch (e) {
+        console.error('Error saving stats:', e.message);
+    }
+}
+
+// Load stats on startup
+loadGlobalStats();
 
 // HTTP server for static files
 const server = http.createServer((req, res) => {
@@ -43,6 +77,45 @@ const server = http.createServer((req, res) => {
         }).on('error', (err) => {
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'Failed to fetch credentials' }));
+        });
+        return;
+    }
+
+    // GET global stats
+    if (req.url === '/api/stats' && req.method === 'GET') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(globalStats));
+        return;
+    }
+
+    // POST to update stats after a transfer
+    if (req.url === '/api/stats' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+            try {
+                const data = JSON.parse(body);
+                // Validate and update stats
+                if (typeof data.files === 'number' && data.files > 0) {
+                    globalStats.totalFiles += data.files;
+                }
+                if (typeof data.bytes === 'number' && data.bytes > 0) {
+                    globalStats.totalBytes += data.bytes;
+                }
+                if (typeof data.duration === 'number' && data.duration > 0) {
+                    globalStats.totalDuration += data.duration;
+                }
+                globalStats.totalSessions += 1;
+
+                // Save to file
+                saveGlobalStats();
+
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: true, stats: globalStats }));
+            } catch (e) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Invalid JSON' }));
+            }
         });
         return;
     }

@@ -19,6 +19,10 @@ class FileShare {
         this.wakeLock = null;
         this.webLock = null;
 
+        // Stats tracking for receiver
+        this.receivedFilesCount = 0;
+        this.receivedTotalBytes = 0;
+
         this.init();
     }
 
@@ -784,6 +788,11 @@ class FileShare {
                 this.updateTransferStatus(`Receiving: ${msg.name} (${msg.currentIndex}/${msg.totalFiles})`);
                 this.updateCurrentFileName(msg.name);
             } else if (msg.type === 'file-complete') {
+                // Track received file stats before downloading
+                if (this.receivedFileInfo) {
+                    this.receivedFilesCount++;
+                    this.receivedTotalBytes += this.receivedFileInfo.size;
+                }
                 this.assembleAndDownloadFile();
             } else if (msg.type === 'all-complete') {
                 this.transferComplete = true; // Mark transfer as successful
@@ -791,6 +800,13 @@ class FileShare {
                 this.updateConnectionStatus('All files received successfully');
                 this.updateProgressBar(100);
                 this.showNotification('All files received!', 'success');
+
+                // Update global stats (receiver side)
+                if (window.globalStats && this.receivedFilesCount > 0) {
+                    const transferDuration = Date.now() - this.transferStartTime;
+                    window.globalStats.addTransfer(this.receivedFilesCount, this.receivedTotalBytes, transferDuration);
+                }
+
                 // Release locks after transfer complete
                 this.releaseWakeLock();
                 if (this.releaseWebLock) this.releaseWebLock();
@@ -823,6 +839,13 @@ class FileShare {
         this.updateConnectionStatus('All files sent successfully');
         this.updateProgressBar(100);
         this.showNotification('All files sent!', 'success');
+
+        // Update global stats (sender side)
+        const totalBytes = this.files.reduce((sum, file) => sum + file.size, 0);
+        const transferDuration = Date.now() - this.transferStartTime;
+        if (window.globalStats) {
+            window.globalStats.addTransfer(this.files.length, totalBytes, transferDuration);
+        }
 
         // Release locks after transfer complete
         this.releaseWakeLock();
@@ -1004,3 +1027,121 @@ styles.textContent = `
     .notification-message { color: rgba(255, 255, 255, 0.9); font-size: 0.95rem; }
 `;
 document.head.appendChild(styles);
+
+// ============================================
+// GLOBAL TRANSFER STATS TRACKER (Server-backed)
+// ============================================
+
+class GlobalStats {
+    constructor() {
+        this.apiUrl = '/api/stats';
+        this.stats = {
+            totalFiles: 0,
+            totalBytes: 0,
+            totalSessions: 0,
+            totalDuration: 0
+        };
+        this.init();
+    }
+
+    async init() {
+        await this.fetchStats();
+        this.updateDisplay();
+    }
+
+    async fetchStats() {
+        try {
+            const response = await fetch(this.apiUrl);
+            if (response.ok) {
+                this.stats = await response.json();
+            }
+        } catch (e) {
+            console.error('Error fetching global stats:', e);
+        }
+    }
+
+    async addTransfer(fileCount, totalBytes, durationMs = 0) {
+        try {
+            const response = await fetch(this.apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    files: fileCount,
+                    bytes: totalBytes,
+                    duration: durationMs / 1000 // Convert to seconds
+                })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                this.stats = data.stats;
+                this.updateDisplay();
+            }
+        } catch (e) {
+            console.error('Error updating global stats:', e);
+        }
+    }
+
+    formatGB(bytes) {
+        const gb = bytes / (1024 * 1024 * 1024);
+        if (gb >= 1000) {
+            return (gb / 1000).toFixed(2) + ' TB';
+        }
+        return gb.toFixed(1) + ' GB';
+    }
+
+    formatNumber(num) {
+        if (num >= 1000000) {
+            return (num / 1000000).toFixed(1) + 'M';
+        } else if (num >= 1000) {
+            return (num / 1000).toFixed(1) + 'K';
+        }
+        return num.toString();
+    }
+
+    formatSpeed(bytesPerSecond) {
+        const mbps = bytesPerSecond / (1024 * 1024);
+        if (mbps >= 1000) {
+            return (mbps / 1000).toFixed(1) + ' GB/s';
+        }
+        return mbps.toFixed(1) + ' MB/s';
+    }
+
+    updateDisplay() {
+        const filesEl = document.getElementById('globalTotalFiles');
+        const sizeEl = document.getElementById('globalTotalSize');
+        const sessionsEl = document.getElementById('globalTotalSessions');
+        const speedEl = document.getElementById('globalAvgSpeed');
+
+        if (filesEl) {
+            filesEl.textContent = this.formatNumber(this.stats.totalFiles);
+        }
+        if (sizeEl) {
+            sizeEl.textContent = this.formatGB(this.stats.totalBytes);
+        }
+        if (sessionsEl) {
+            sessionsEl.textContent = this.formatNumber(this.stats.totalSessions);
+        }
+        if (speedEl) {
+            // Calculate average speed: total bytes / total duration
+            if (this.stats.totalDuration > 0) {
+                const avgSpeed = this.stats.totalBytes / this.stats.totalDuration;
+                speedEl.textContent = this.formatSpeed(avgSpeed);
+            } else {
+                speedEl.textContent = '--';
+            }
+        }
+    }
+
+    getStats() {
+        return {
+            totalFiles: this.stats.totalFiles,
+            totalBytes: this.stats.totalBytes,
+            totalSessions: this.stats.totalSessions
+        };
+    }
+}
+
+// Initialize global stats on page load
+document.addEventListener('DOMContentLoaded', () => {
+    window.globalStats = new GlobalStats();
+});
