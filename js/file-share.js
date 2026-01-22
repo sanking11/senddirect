@@ -119,6 +119,9 @@ class FileShare {
         // Resume stripe animation when files cleared
         const dropZone = document.getElementById('dropZone');
         if (dropZone) dropZone.classList.remove('has-files');
+        // Stop circuit data flow animation when files cleared
+        const heroCard = document.querySelector('.hero-card');
+        if (heroCard) heroCard.classList.remove('data-flowing');
     }
 
     handleDragOver(e) { e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.add('drag-over'); }
@@ -143,6 +146,11 @@ class FileShare {
         if (dropZone && this.files.length > 0) {
             dropZone.classList.add('has-files');
         }
+        // Start circuit data flow animation when files are added
+        const heroCard = document.querySelector('.hero-card');
+        if (heroCard && this.files.length > 0) {
+            heroCard.classList.add('data-flowing');
+        }
     }
 
     removeFile(index) {
@@ -154,6 +162,9 @@ class FileShare {
             // Resume stripe animation when all files removed
             const dropZone = document.getElementById('dropZone');
             if (dropZone) dropZone.classList.remove('has-files');
+            // Stop circuit data flow animation when all files removed
+            const heroCard = document.querySelector('.hero-card');
+            if (heroCard) heroCard.classList.remove('data-flowing');
         }
     }
 
@@ -407,6 +418,10 @@ class FileShare {
                 const link = `${window.location.origin}${basePath}?Q-Gate=${this.roomId}`;
                 shareLink.value = link;
                 shareLinkSection.style.display = 'block';
+
+                // Stop circuit data flow animation when share link is generated
+                const heroCard = document.querySelector('.hero-card');
+                if (heroCard) heroCard.classList.remove('data-flowing');
 
                 // Smooth scroll to share link section
                 setTimeout(() => {
@@ -802,9 +817,15 @@ class FileShare {
                 this.showNotification('All files received!', 'success');
 
                 // Update global stats (receiver side)
+                const transferDuration = Date.now() - this.transferStartTime;
                 if (window.globalStats && this.receivedFilesCount > 0) {
-                    const transferDuration = Date.now() - this.transferStartTime;
                     window.globalStats.addTransfer(this.receivedFilesCount, this.receivedTotalBytes, transferDuration);
+                }
+
+                // Update stats widgets with real transfer data (receiver side)
+                if (window.statsWidgets && this.receivedFilesCount > 0) {
+                    const speedMBps = this.receivedTotalBytes / (transferDuration / 1000) / (1024 * 1024);
+                    window.statsWidgets.onTransferComplete(this.receivedFilesCount, speedMBps, transferDuration);
                 }
 
                 // Release locks after transfer complete
@@ -845,6 +866,12 @@ class FileShare {
         const transferDuration = Date.now() - this.transferStartTime;
         if (window.globalStats) {
             window.globalStats.addTransfer(this.files.length, totalBytes, transferDuration);
+        }
+
+        // Update stats widgets with real transfer data (sender side)
+        if (window.statsWidgets) {
+            const speedMBps = totalBytes / (transferDuration / 1000) / (1024 * 1024);
+            window.statsWidgets.onTransferComplete(this.files.length, speedMBps, transferDuration);
         }
 
         // Release locks after transfer complete

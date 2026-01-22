@@ -659,45 +659,11 @@ class StatsWidgets {
     }
 
     bindFileShareEvents() {
-        // Listen for file selection
-        const fileInput = document.getElementById('fileInput');
-        if (fileInput) {
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    this.showStatsWidgets();
-                    this.sessionStats.totalFiles = e.target.files.length;
-                    this.sessionStats.pending = e.target.files.length;
-                    this.updateDisplay();
-                }
-            });
-        }
-
-        // Listen for drop events
-        const dropZone = document.getElementById('dropZone');
-        if (dropZone) {
-            dropZone.addEventListener('drop', () => {
-                // Files will be counted after drop handler processes
-                setTimeout(() => {
-                    const filesList = document.getElementById('filesList');
-                    if (filesList) {
-                        const fileItems = filesList.querySelectorAll('.file-item');
-                        if (fileItems.length > 0) {
-                            this.showStatsWidgets();
-                            this.sessionStats.totalFiles = fileItems.length;
-                            this.sessionStats.pending = fileItems.length;
-                            this.updateDisplay();
-                        }
-                    }
-                }, 100);
-            });
-        }
-
         // Listen for share button click to start timer
         const shareBtn = document.getElementById('shareBtn');
         if (shareBtn) {
             shareBtn.addEventListener('click', () => {
                 this.sessionStats.startTime = Date.now();
-                this.updateDisplay();
             });
         }
 
@@ -727,29 +693,27 @@ class StatsWidgets {
     }
 
     onFileAdded(count) {
-        if (count > 0) {
-            this.showStatsWidgets();
-        }
+        // Don't show stats widgets on file add - only track the count
         this.sessionStats.totalFiles = count;
         this.sessionStats.pending = count;
-        this.updateDisplay();
+        this.sessionStats.successful = 0;
     }
 
     onTransferStart() {
         this.sessionStats.startTime = Date.now();
-        this.updateDisplay();
     }
 
     onTransferProgress(pending) {
         this.sessionStats.pending = pending;
         this.sessionStats.successful = this.sessionStats.totalFiles - pending;
-        this.updateDisplay();
     }
 
-    onTransferComplete(fileCount, speed) {
+    onTransferComplete(fileCount, speed, timeTaken) {
+        this.sessionStats.totalFiles = fileCount;
         this.sessionStats.successful = fileCount;
         this.sessionStats.pending = 0;
         this.sessionStats.transferSpeed = speed || 0;
+        this.sessionStats.timeTaken = timeTaken || 0;
 
         // Update lifetime stats
         this.stats.yourTotalFiles += fileCount;
@@ -758,6 +722,9 @@ class StatsWidgets {
             this.stats.totalTime += (Date.now() - this.sessionStats.startTime);
         }
         this.saveStats();
+
+        // Show stats widgets only after successful transfer
+        this.showStatsWidgets();
         this.updateDisplay();
     }
 
@@ -775,33 +742,29 @@ class StatsWidgets {
         }
     }
 
-    async fetchGlobalStats() {
-        // This would typically fetch from your backend
-        // For now, simulate with local storage aggregate
-        const globalTotal = document.getElementById('statGlobalTotal');
-        if (globalTotal) {
-            // Simulate a growing global count
-            const baseCount = 2747;
-            const randomAdd = Math.floor(Math.random() * 100);
-            globalTotal.textContent = (baseCount + randomAdd + this.stats.yourTotalFiles).toLocaleString();
-        }
-    }
-
     updateDisplay() {
-        // Session stats
+        // Session stats - show real transfer data
         const totalFilesEl = document.getElementById('statTotalFiles');
         const successfulEl = document.getElementById('statSuccessful');
         const pendingEl = document.getElementById('statPending');
         const speedEl = document.getElementById('statTransferSpeed');
-        const yourTotalEl = document.getElementById('statYourTotal');
+        const timeTakenEl = document.getElementById('statTimeTaken');
 
         if (totalFilesEl) totalFilesEl.textContent = this.sessionStats.totalFiles;
         if (successfulEl) successfulEl.textContent = this.sessionStats.successful;
         if (pendingEl) pendingEl.textContent = this.sessionStats.pending;
         if (speedEl) speedEl.textContent = this.sessionStats.transferSpeed.toFixed(1);
-        if (yourTotalEl) yourTotalEl.textContent = this.stats.yourTotalFiles.toLocaleString();
 
-        // Fetch global stats
-        this.fetchGlobalStats();
+        // Update time taken
+        if (timeTakenEl && this.sessionStats.timeTaken) {
+            const seconds = Math.floor(this.sessionStats.timeTaken / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            if (minutes > 0) {
+                timeTakenEl.textContent = `${minutes}m ${remainingSeconds}s`;
+            } else {
+                timeTakenEl.textContent = `${remainingSeconds}s`;
+            }
+        }
     }
 }
