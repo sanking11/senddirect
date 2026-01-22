@@ -19,6 +19,20 @@
     let glitchActive = false;
     let glitchEndTime = 0;
 
+    // Grid drift/movement state
+    let gridOffsetX = 0;
+    let gridOffsetY = 0;
+    let gridTargetX = 0;
+    let gridTargetY = 0;
+    let gridDriftState = 'paused'; // 'moving' or 'paused'
+    let gridStateChangeTime = 0;
+    const gridDriftConfig = {
+        maxDrift: 30,           // Maximum drift distance
+        moveSpeed: 0.02,        // How fast it moves toward target
+        pauseDuration: 2000,    // Pause duration in ms (2 seconds)
+        moveDuration: 3000      // Move duration in ms (3 seconds)
+    };
+
     const config = {
         gridSize: 50,
         gridColor: 'rgba(22, 253, 106, 0.14)',
@@ -129,6 +143,37 @@
         glitchEndTime = Date.now() + config.glitchDuration;
     }
 
+    // Update grid drift movement
+    function updateGridDrift() {
+        const now = Date.now();
+
+        if (gridDriftState === 'paused') {
+            // Check if pause duration has passed
+            if (now - gridStateChangeTime > gridDriftConfig.pauseDuration) {
+                // Switch to moving state and pick new random target
+                gridDriftState = 'moving';
+                gridStateChangeTime = now;
+
+                // Pick random direction and distance
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * gridDriftConfig.maxDrift;
+                gridTargetX = Math.cos(angle) * distance;
+                gridTargetY = Math.sin(angle) * distance;
+            }
+        } else if (gridDriftState === 'moving') {
+            // Check if move duration has passed
+            if (now - gridStateChangeTime > gridDriftConfig.moveDuration) {
+                // Switch to paused state
+                gridDriftState = 'paused';
+                gridStateChangeTime = now;
+            } else {
+                // Smoothly move toward target
+                gridOffsetX += (gridTargetX - gridOffsetX) * gridDriftConfig.moveSpeed;
+                gridOffsetY += (gridTargetY - gridOffsetY) * gridDriftConfig.moveSpeed;
+            }
+        }
+    }
+
     // Apply wave distortion to a point
     function applyWave(x, y) {
         const waveX = Math.sin(y * config.waveFrequency + time * config.waveSpeed) * config.waveAmplitude;
@@ -209,13 +254,14 @@
         gridCtx.strokeStyle = color;
         gridCtx.lineWidth = 1;
 
-        // Draw vertical lines with distortion
-        for (let x = 0; x <= width + gridSize; x += gridSize) {
+        // Draw vertical lines with distortion - using random drift offset
+        for (let x = -gridSize; x <= width + gridSize; x += gridSize) {
             gridCtx.beginPath();
             let lastHidden = false;
 
             for (let y = 0; y <= height; y += 5) {
-                const distorted = distortPoint(x, y);
+                // Apply drift offset to base position
+                const distorted = distortPoint(x + gridOffsetX, y + gridOffsetY);
 
                 if (distorted.hidden) {
                     lastHidden = true;
@@ -236,13 +282,14 @@
             gridCtx.stroke();
         }
 
-        // Draw horizontal lines with distortion
-        for (let y = 0; y <= height + gridSize; y += gridSize) {
+        // Draw horizontal lines with distortion - using random drift offset
+        for (let y = -gridSize; y <= height + gridSize; y += gridSize) {
             gridCtx.beginPath();
             let lastHidden = false;
 
             for (let x = 0; x <= width; x += 5) {
-                const distorted = distortPoint(x, y);
+                // Apply drift offset to base position
+                const distorted = distortPoint(x + gridOffsetX, y + gridOffsetY);
 
                 if (distorted.hidden) {
                     lastHidden = true;
@@ -264,6 +311,66 @@
         }
     }
 
+    // Mask out UI elements so grid doesn't show through them
+    function maskUIElements() {
+        // Select only specific visible card elements (not containers)
+        const selectors = [
+            '.header',
+            '.hero-card',
+            '.feature-card',
+            '.step-card',
+            '.global-stat-card',
+            '.stat-card',
+            '.widget',
+            '.page-card',
+            '.footer-animated'
+        ];
+
+        const elements = document.querySelectorAll(selectors.join(', '));
+
+        // Use destination-out to erase grid where elements are
+        gridCtx.globalCompositeOperation = 'destination-out';
+        gridCtx.fillStyle = 'rgba(0, 0, 0, 1)';
+
+        elements.forEach(el => {
+            const rect = el.getBoundingClientRect();
+
+            // Skip elements that are not visible or have no size
+            if (rect.width === 0 || rect.height === 0) return;
+
+            const padding = 2; // Small padding for clean edges
+            const borderRadius = 16; // Match card border radius
+
+            // Draw rounded rectangle to match card shapes
+            drawRoundedRect(
+                rect.left - padding,
+                rect.top - padding,
+                rect.width + padding * 2,
+                rect.height + padding * 2,
+                borderRadius
+            );
+        });
+
+        // Reset composite operation
+        gridCtx.globalCompositeOperation = 'source-over';
+    }
+
+    // Helper to draw rounded rectangles for masking
+    function drawRoundedRect(x, y, width, height, radius) {
+        gridCtx.beginPath();
+        gridCtx.moveTo(x + radius, y);
+        gridCtx.lineTo(x + width - radius, y);
+        gridCtx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        gridCtx.lineTo(x + width, y + height - radius);
+        gridCtx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        gridCtx.lineTo(x + radius, y + height);
+        gridCtx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        gridCtx.lineTo(x, y + radius);
+        gridCtx.quadraticCurveTo(x, y, x + radius, y);
+        gridCtx.closePath();
+        gridCtx.fill();
+    }
+
     function drawDistortedGrid() {
         gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
 
@@ -280,6 +387,9 @@
 
         // Main green grid layer
         drawGridLines(glitchOffset.x, glitchOffset.y, config.gridColor);
+
+        // Mask out UI elements so grid doesn't show through
+        maskUIElements();
 
         // Draw subtle radial glow around distortion area
         const radialGradient = gridCtx.createRadialGradient(
@@ -396,6 +506,9 @@
 
         // Update time for wave animation
         time += 0.016; // Approximately 60fps
+
+        // Update grid drift movement
+        updateGridDrift();
 
         // Smooth mouse following
         mouseX += (targetMouseX - mouseX) * 0.15;
