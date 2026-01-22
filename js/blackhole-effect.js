@@ -21,15 +21,15 @@
 
     const config = {
         gridSize: 50,
-        gridColor: 'rgba(74, 222, 128, 0.14)',
-        distortionRadius: 150,
-        distortionStrength: 40,
+        gridColor: 'rgba(22, 253, 106, 0.14)',
+        distortionRadius: 250,
+        distortionStrength: 60,
         blackholeRadius: 15,
         glowRadius: 60,
         eventHorizonRadius: 25,
-        waveAmplitude: 1.2,
-        waveFrequency: 0.015,
-        waveSpeed: 0.8,
+        waveAmplitude: 2,
+        waveFrequency: 0.025,
+        waveSpeed: 1.2,
         glitchInterval: 10000,
         glitchDuration: 250
     };
