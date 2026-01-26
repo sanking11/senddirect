@@ -6,36 +6,25 @@ const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const { Pool } = require('pg');
+const nodemailer = require('nodemailer');
 
-// Email sending via Resend HTTP API (works on Render - no SMTP blocking)
-async function sendEmailViaResend(mailOptions) {
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) {
-        throw new Error('RESEND_API_KEY not configured');
-    }
-
-    const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json'
+// Email transporter configuration (Proton Mail SMTP - using port 2525 to bypass blocking)
+function getEmailTransporter() {
+    return nodemailer.createTransport({
+        host: 'smtp.protonmail.ch',
+        port: 2525, // Alternative port to bypass firewall blocking
+        secure: false,
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS
         },
-        body: JSON.stringify({
-            from: mailOptions.from,
-            to: Array.isArray(mailOptions.to) ? mailOptions.to : [mailOptions.to],
-            reply_to: mailOptions.replyTo,
-            subject: mailOptions.subject,
-            html: mailOptions.html
-        })
+        tls: {
+            rejectUnauthorized: false
+        },
+        connectionTimeout: 30000,
+        greetingTimeout: 30000,
+        socketTimeout: 60000
     });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-        throw new Error(result.message || 'Failed to send email');
-    }
-
-    return result;
 }
 
 const PORT = process.env.PORT || 3000;
@@ -124,14 +113,20 @@ async function updateGlobalStats(files, bytes, duration) {
 initDatabase();
 
 // Verify email configuration on startup
-console.log('Email Configuration (Resend):');
-console.log('  RESEND_API_KEY:', process.env.RESEND_API_KEY ? 'Set (' + process.env.RESEND_API_KEY.length + ' chars)' : 'NOT SET');
-console.log('  EMAIL_FROM:', process.env.EMAIL_FROM || 'onboarding@resend.dev (default)');
+console.log('SMTP Configuration (Proton Mail - Port 2525):');
+console.log('  SMTP_USER:', process.env.SMTP_USER ? process.env.SMTP_USER : 'NOT SET');
+console.log('  SMTP_PASS:', process.env.SMTP_PASS ? 'Set (' + process.env.SMTP_PASS.length + ' chars)' : 'NOT SET');
 
-if (process.env.RESEND_API_KEY) {
-    console.log('Email service ready (Resend HTTP API)');
+if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    getEmailTransporter().verify((error, success) => {
+        if (error) {
+            console.error('Email verification failed:', error.message);
+        } else {
+            console.log('Email server is ready to send messages');
+        }
+    });
 } else {
-    console.log('Email not configured - RESEND_API_KEY missing');
+    console.log('Email not configured - SMTP credentials missing');
 }
 
 // Build HTML email template
@@ -343,22 +338,22 @@ const server = http.createServer((req, res) => {
                     expiryHours
                 });
 
-                // Send email via Resend HTTP API
-                const fromEmail = process.env.EMAIL_FROM || 'Send Direct <onboarding@resend.dev>';
+                // Send email via Proton Mail SMTP
                 const mailOptions = {
-                    from: fromEmail,
-                    to: recipientList,
+                    from: `"Send Direct" <${process.env.SMTP_USER}>`,
+                    to: recipientList.join(', '),
                     replyTo: senderEmail,
                     subject: title ? `${title} - Secure File Transfer` : `Secure File Transfer from ${senderEmail}`,
                     html: emailHtml
                 };
 
-                console.log('Attempting to send email via Resend...');
+                console.log('Attempting to send email via Proton Mail (port 2525)...');
                 console.log('To:', recipientList.join(', '));
-                console.log('From:', fromEmail);
+                console.log('From:', process.env.SMTP_USER);
 
-                const result = await sendEmailViaResend(mailOptions);
-                console.log('Email sent successfully:', result.id);
+                const transporter = getEmailTransporter();
+                const result = await transporter.sendMail(mailOptions);
+                console.log('Email sent successfully:', result.messageId);
 
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ success: true, message: 'Email sent successfully' }));
