@@ -140,11 +140,6 @@ class FileShare {
                 modeLinkBtn.classList.remove('active');
                 if (emailForm) emailForm.style.display = 'block';
                 if (shareBtnText) shareBtnText.textContent = 'Send Files';
-                // Auto-enable password for email mode
-                if (enablePassword && !enablePassword.checked) {
-                    enablePassword.checked = true;
-                    if (passwordInput) passwordInput.style.display = 'block';
-                }
             });
         }
 
