@@ -9,22 +9,29 @@ const { Pool } = require('pg');
 const nodemailer = require('nodemailer');
 
 // Email transporter configuration (Proton Mail SMTP)
-const emailTransporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.protonmail.ch',
-    port: parseInt(process.env.SMTP_PORT) || 465,
-    secure: true, // Use SSL on port 465
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-    },
-    tls: {
-        minVersion: 'TLSv1.2',
-        rejectUnauthorized: false // Allow self-signed certs
-    },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000
-});
+// Try creating transporter dynamically to handle connection issues
+let emailTransporter = null;
+
+function getEmailTransporter() {
+    if (!emailTransporter) {
+        emailTransporter = nodemailer.createTransport({
+            host: 'smtp.protonmail.ch',
+            port: 587,
+            secure: false,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS
+            },
+            tls: {
+                rejectUnauthorized: false
+            },
+            connectionTimeout: 30000,
+            greetingTimeout: 30000,
+            socketTimeout: 60000
+        });
+    }
+    return emailTransporter;
+}
 
 const PORT = process.env.PORT || 3000;
 const STATIC_DIR = path.join(__dirname, '..');
@@ -112,15 +119,22 @@ async function updateGlobalStats(files, bytes, duration) {
 initDatabase();
 
 // Verify email configuration on startup
-emailTransporter.verify((error, success) => {
-    if (error) {
-        console.error('Email configuration error:', error.message);
-        console.error('SMTP_USER:', process.env.SMTP_USER ? 'Set' : 'NOT SET');
-        console.error('SMTP_PASS:', process.env.SMTP_PASS ? 'Set' : 'NOT SET');
-    } else {
-        console.log('Email server is ready to send messages');
-    }
-});
+console.log('SMTP Configuration:');
+console.log('  SMTP_USER:', process.env.SMTP_USER ? process.env.SMTP_USER : 'NOT SET');
+console.log('  SMTP_PASS:', process.env.SMTP_PASS ? 'Set (' + process.env.SMTP_PASS.length + ' chars)' : 'NOT SET');
+
+if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    getEmailTransporter().verify((error, success) => {
+        if (error) {
+            console.error('Email verification failed:', error.message);
+            console.error('Full error:', JSON.stringify(error, null, 2));
+        } else {
+            console.log('Email server is ready to send messages');
+        }
+    });
+} else {
+    console.log('Email not configured - SMTP credentials missing');
+}
 
 // Build HTML email template
 function buildEmailTemplate({ senderEmail, title, message, link, fileCount, totalSize, hasPassword, expiryHours }) {
@@ -340,8 +354,13 @@ const server = http.createServer((req, res) => {
                     html: emailHtml
                 };
 
-                await emailTransporter.sendMail(mailOptions);
-                console.log(`Email sent to ${recipientList.join(', ')} from ${senderEmail}`);
+                console.log('Attempting to send email...');
+                console.log('To:', recipientList.join(', '));
+                console.log('From:', process.env.SMTP_USER);
+
+                const transporter = getEmailTransporter();
+                const result = await transporter.sendMail(mailOptions);
+                console.log('Email sent successfully:', result.messageId);
 
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ success: true, message: 'Email sent successfully' }));
