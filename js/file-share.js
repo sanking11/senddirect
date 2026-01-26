@@ -108,6 +108,46 @@ class FileShare {
         const clearFilesBtn = document.getElementById('clearFiles');
         if (clearFilesBtn) clearFilesBtn.addEventListener('click', () => this.clearAllFiles());
 
+        // Password checkbox toggle
+        const enablePassword = document.getElementById('enablePassword');
+        const passwordInput = document.getElementById('sharePassword');
+        if (enablePassword && passwordInput) {
+            enablePassword.addEventListener('change', (e) => {
+                passwordInput.style.display = e.target.checked ? 'block' : 'none';
+                if (!e.target.checked) passwordInput.value = '';
+            });
+        }
+
+        // Transfer mode toggle (link vs email)
+        this.transferMode = 'link';
+        const modeLinkBtn = document.getElementById('modeLinkBtn');
+        const modeEmailBtn = document.getElementById('modeEmailBtn');
+        const emailForm = document.getElementById('emailForm');
+        const shareBtnText = document.getElementById('shareBtnText');
+
+        if (modeLinkBtn && modeEmailBtn) {
+            modeLinkBtn.addEventListener('click', () => {
+                this.transferMode = 'link';
+                modeLinkBtn.classList.add('active');
+                modeEmailBtn.classList.remove('active');
+                if (emailForm) emailForm.style.display = 'none';
+                if (shareBtnText) shareBtnText.textContent = 'Generate Share Link';
+            });
+
+            modeEmailBtn.addEventListener('click', () => {
+                this.transferMode = 'email';
+                modeEmailBtn.classList.add('active');
+                modeLinkBtn.classList.remove('active');
+                if (emailForm) emailForm.style.display = 'block';
+                if (shareBtnText) shareBtnText.textContent = 'Send Files';
+                // Auto-enable password for email mode
+                if (enablePassword && !enablePassword.checked) {
+                    enablePassword.checked = true;
+                    if (passwordInput) passwordInput.style.display = 'block';
+                }
+            });
+        }
+
         window.addEventListener('beforeunload', () => { if (this.ws) this.ws.close(); });
     }
 
@@ -122,6 +162,9 @@ class FileShare {
         // Stop circuit data flow animation when files cleared
         const heroCard = document.querySelector('.hero-card');
         if (heroCard) heroCard.classList.remove('data-flowing');
+        // Hide share options when files cleared
+        const shareOptions = document.getElementById('shareOptions');
+        if (shareOptions) shareOptions.style.display = 'none';
     }
 
     handleDragOver(e) { e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.add('drag-over'); }
@@ -151,6 +194,11 @@ class FileShare {
         if (heroCard && this.files.length > 0) {
             heroCard.classList.add('data-flowing');
         }
+        // Show share options when files are added
+        const shareOptions = document.getElementById('shareOptions');
+        if (shareOptions && this.files.length > 0) {
+            shareOptions.style.display = 'block';
+        }
     }
 
     removeFile(index) {
@@ -165,6 +213,9 @@ class FileShare {
             // Stop circuit data flow animation when all files removed
             const heroCard = document.querySelector('.hero-card');
             if (heroCard) heroCard.classList.remove('data-flowing');
+            // Hide share options when all files removed
+            const shareOptions = document.getElementById('shareOptions');
+            if (shareOptions) shareOptions.style.display = 'none';
         }
     }
 
@@ -377,14 +428,97 @@ class FileShare {
                 await this.handleIceCandidate(msg);
                 break;
 
+            case 'password-required':
+                this.pendingRoomId = msg.roomId;
+                this.showPasswordPrompt();
+                break;
+
+            case 'room-closed':
+                this.showNotification(msg.reason || 'Room closed', 'info');
+                this.updateTransferStatus(msg.reason || 'Room closed');
+                break;
+
             case 'error':
                 this.showNotification(msg.message, 'error');
                 if (msg.message === 'Room not found') {
                     this.updateTransferStatus('Share link expired or invalid. Ask sender for a new link.');
+                } else if (msg.message === 'Incorrect password') {
+                    this.showPasswordPrompt(true);
                 } else {
                     this.updateTransferStatus(msg.message);
                 }
                 break;
+        }
+    }
+
+    showPasswordPrompt(isRetry = false) {
+        const password = prompt(isRetry ? 'Incorrect password. Please try again:' : 'This file is password protected. Enter password:');
+        if (password) {
+            this.send({
+                type: 'verify-password',
+                roomId: this.pendingRoomId,
+                password: password
+            });
+        } else {
+            this.showNotification('Password required to access files', 'error');
+            this.updateTransferStatus('Access denied - password required');
+        }
+    }
+
+    getShareOptions() {
+        const downloadLimit = document.getElementById('downloadLimit');
+        const expiryTime = document.getElementById('expiryTime');
+        const enablePassword = document.getElementById('enablePassword');
+        const sharePassword = document.getElementById('sharePassword');
+
+        return {
+            maxDownloads: downloadLimit ? parseInt(downloadLimit.value) : 1,
+            expiryHours: expiryTime ? parseInt(expiryTime.value) : 24,
+            password: (enablePassword?.checked && sharePassword?.value) ? sharePassword.value : null
+        };
+    }
+
+    getEmailData() {
+        return {
+            recipients: document.getElementById('recipientEmails')?.value || '',
+            senderEmail: document.getElementById('senderEmail')?.value || '',
+            title: document.getElementById('transferTitle')?.value || '',
+            message: document.getElementById('transferMessage')?.value || ''
+        };
+    }
+
+    validateEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+    }
+
+    async sendEmailNotification(link, emailData) {
+        try {
+            const totalSize = this.files.reduce((sum, f) => sum + f.size, 0);
+            const response = await fetch('/api/send-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    recipients: emailData.recipients,
+                    senderEmail: emailData.senderEmail,
+                    title: emailData.title,
+                    message: emailData.message,
+                    link: link,
+                    fileCount: this.files.length,
+                    totalSize: this.formatFileSize(totalSize),
+                    password: this.shareOptions.password,
+                    expiryHours: this.shareOptions.expiryHours
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Failed to send email');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Email send error:', error);
+            throw error;
         }
     }
 
@@ -394,8 +528,45 @@ class FileShare {
             return;
         }
 
+        // Validate password if enabled
+        const enablePassword = document.getElementById('enablePassword');
+        const sharePassword = document.getElementById('sharePassword');
+        if (enablePassword?.checked && !sharePassword?.value) {
+            this.showNotification('Please enter a password', 'error');
+            return;
+        }
+
+        // Validate email inputs if in email mode
+        if (this.transferMode === 'email') {
+            const emailData = this.getEmailData();
+
+            if (!emailData.recipients.trim()) {
+                this.showNotification('Please enter recipient email(s)', 'error');
+                return;
+            }
+
+            // Validate all recipient emails
+            const emails = emailData.recipients.split(',').map(e => e.trim()).filter(e => e);
+            const invalidEmails = emails.filter(e => !this.validateEmail(e));
+            if (invalidEmails.length > 0) {
+                this.showNotification(`Invalid email(s): ${invalidEmails.join(', ')}`, 'error');
+                return;
+            }
+
+            if (!emailData.senderEmail.trim()) {
+                this.showNotification('Please enter your email', 'error');
+                return;
+            }
+
+            if (!this.validateEmail(emailData.senderEmail)) {
+                this.showNotification('Please enter a valid sender email', 'error');
+                return;
+            }
+        }
+
         this.isHost = true;
         this.roomId = this.generateRoomId();
+        this.shareOptions = this.getShareOptions();
 
         try {
             await this.connectToServer();
@@ -406,16 +577,33 @@ class FileShare {
                 setTimeout(() => reject(new Error('Room creation timeout')), 10000);
             });
 
-            this.send({ type: 'create-room', roomId: this.roomId });
+            this.send({
+                type: 'create-room',
+                roomId: this.roomId,
+                options: this.shareOptions
+            });
             await roomCreated;
 
             const shareLinkSection = document.getElementById('shareLinkSection');
             const shareLink = document.getElementById('shareLink');
 
+            // Use clean URL without index.html
+            const basePath = window.location.pathname.replace(/index\.html$/, '');
+            const link = `${window.location.origin}${basePath}?Q-Gate=${this.roomId}`;
+
+            // If email mode, send the email
+            if (this.transferMode === 'email') {
+                const emailData = this.getEmailData();
+                try {
+                    await this.sendEmailNotification(link, emailData);
+                    this.showNotification('Email sent successfully!', 'success');
+                } catch (emailError) {
+                    this.showNotification('Email sending failed: ' + emailError.message, 'error');
+                    // Continue anyway - link is still created
+                }
+            }
+
             if (shareLinkSection && shareLink) {
-                // Use clean URL without index.html
-                const basePath = window.location.pathname.replace(/index\.html$/, '');
-                const link = `${window.location.origin}${basePath}?Q-Gate=${this.roomId}`;
                 shareLink.value = link;
                 shareLinkSection.style.display = 'block';
 
@@ -433,7 +621,12 @@ class FileShare {
             }
 
             await this.initializeWebRTC();
-            this.showNotification('Share link created!', 'success');
+
+            if (this.transferMode === 'email') {
+                this.showNotification('Link sent via email! Waiting for recipient...', 'success');
+            } else {
+                this.showNotification('Share link created!', 'success');
+            }
 
             // Start keepalive ping
             this.startKeepalive();
@@ -827,6 +1020,9 @@ class FileShare {
                     const speedMBps = this.receivedTotalBytes / (transferDuration / 1000) / (1024 * 1024);
                     window.statsWidgets.onTransferComplete(this.receivedFilesCount, speedMBps, transferDuration);
                 }
+
+                // Notify server that transfer is complete (for download count tracking)
+                this.send({ type: 'transfer-complete', roomId: this.roomId });
 
                 // Release locks after transfer complete
                 this.releaseWakeLock();

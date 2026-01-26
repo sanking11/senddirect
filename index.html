@@ -414,6 +414,76 @@
                             </div>
                         </div>
 
+                        <!-- Share Options -->
+                        <div class="share-options" id="shareOptions" style="display: none;">
+                            <!-- Transfer Mode Toggle -->
+                            <div class="transfer-mode-toggle">
+                                <button type="button" class="mode-btn active" id="modeLinkBtn" data-mode="link">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                                    </svg>
+                                    Send link
+                                </button>
+                                <button type="button" class="mode-btn" id="modeEmailBtn" data-mode="email">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                        <polyline points="22,6 12,13 2,6"/>
+                                    </svg>
+                                    Send email
+                                </button>
+                            </div>
+
+                            <!-- Email Form (hidden by default) -->
+                            <div class="email-form" id="emailForm" style="display: none;">
+                                <div class="form-group">
+                                    <label class="form-label">Send to</label>
+                                    <input type="text" class="form-input" id="recipientEmails" placeholder="Send files to">
+                                    <span class="form-hint">Separate multiple emails with commas or press enter to add</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Your email</label>
+                                    <input type="email" class="form-input" id="senderEmail" placeholder="yourname@email.com">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Transfer info <span class="optional">(Optional)</span></label>
+                                    <input type="text" class="form-input" id="transferTitle" placeholder="Title">
+                                    <textarea class="form-input form-textarea" id="transferMessage" placeholder="Message" rows="3"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Expiry Options -->
+                            <div class="options-row">
+                                <div class="option-group">
+                                    <label class="option-label">Expires after</label>
+                                    <select class="option-select" id="downloadLimit">
+                                        <option value="1">1 download</option>
+                                        <option value="5">5 downloads</option>
+                                        <option value="10">10 downloads</option>
+                                        <option value="25">25 downloads</option>
+                                        <option value="0">Unlimited</option>
+                                    </select>
+                                </div>
+                                <span class="option-or">or</span>
+                                <div class="option-group">
+                                    <select class="option-select" id="expiryTime">
+                                        <option value="1">1 hour</option>
+                                        <option value="24" selected>1 day</option>
+                                        <option value="168">7 days</option>
+                                        <option value="720">30 days</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="options-row password-row">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" id="enablePassword">
+                                    <span class="checkmark"></span>
+                                    <span class="checkbox-label">Protect with password</span>
+                                </label>
+                                <input type="password" class="password-input" id="sharePassword" placeholder="Enter password" style="display: none;">
+                            </div>
+                        </div>
+
                         <!-- Share Button -->
                         <button type="button" class="share-btn liquid-glass" id="shareBtn" disabled>
                             <span class="btn-icon">
@@ -425,7 +495,7 @@
                                     <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
                                 </svg>
                             </span>
-                            <span class="btn-text">Generate Share Link</span>
+                            <span class="btn-text" id="shareBtnText">Generate Share Link</span>
                         </button>
                     </div>
                 </div>

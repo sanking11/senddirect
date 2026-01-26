@@ -6,6 +6,22 @@ const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const { Pool } = require('pg');
+const nodemailer = require('nodemailer');
+
+// Email transporter configuration (Proton Mail SMTP)
+const emailTransporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.protonmail.ch',
+    port: parseInt(process.env.SMTP_PORT) || 587,
+    secure: false, // Use STARTTLS
+    auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+    },
+    tls: {
+        ciphers: 'SSLv3',
+        rejectUnauthorized: true
+    }
+});
 
 const PORT = process.env.PORT || 3000;
 const STATIC_DIR = path.join(__dirname, '..');
@@ -92,6 +108,101 @@ async function updateGlobalStats(files, bytes, duration) {
 // Initialize database on startup
 initDatabase();
 
+// Build HTML email template
+function buildEmailTemplate({ senderEmail, title, message, link, fileCount, totalSize, hasPassword, expiryHours }) {
+    const expiryText = expiryHours === 1 ? '1 hour' :
+                       expiryHours === 24 ? '1 day' :
+                       expiryHours === 168 ? '7 days' :
+                       expiryHours === 720 ? '30 days' : `${expiryHours} hours`;
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #1a1f26;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #1a1f26; padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 500px; background: linear-gradient(135deg, #2a3441 0%, #1e2530 100%); border-radius: 16px; border: 1px solid rgba(74, 222, 128, 0.2); overflow: hidden;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding: 30px 30px 20px; text-align: center; border-bottom: 1px solid rgba(74, 222, 128, 0.1);">
+                            <div style="display: inline-block; background: rgba(74, 222, 128, 0.1); border-radius: 12px; padding: 12px 20px; margin-bottom: 15px;">
+                                <span style="color: #4ade80; font-size: 24px; font-weight: 700; letter-spacing: 2px;">SEND DIRECT</span>
+                            </div>
+                            <h1 style="color: #ffffff; font-size: 22px; font-weight: 600; margin: 0;">Secure File Transfer</h1>
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 30px;">
+                            <p style="color: #9ca3af; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
+                                <strong style="color: #ffffff;">${senderEmail}</strong> has sent you ${fileCount} file${fileCount > 1 ? 's' : ''} (${totalSize}) using end-to-end encrypted P2P transfer.
+                            </p>
+
+                            ${title ? `<p style="color: #ffffff; font-size: 16px; font-weight: 600; margin: 0 0 10px;">${title}</p>` : ''}
+                            ${message ? `<p style="color: #9ca3af; font-size: 14px; line-height: 1.6; margin: 0 0 25px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; border-left: 3px solid #4ade80;">${message}</p>` : ''}
+
+                            <!-- Download Button -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 25px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="${link}" style="display: inline-block; background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%); color: #1a1f26; text-decoration: none; padding: 14px 35px; border-radius: 8px; font-weight: 600; font-size: 15px; letter-spacing: 0.5px;">
+                                            Download Files
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            ${hasPassword ? `
+                            <div style="background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 8px; padding: 15px; margin: 20px 0;">
+                                <p style="color: #4ade80; font-size: 13px; margin: 0; display: flex; align-items: center;">
+                                    <span style="margin-right: 8px;">🔒</span>
+                                    <strong>Password Protected</strong> - The sender will share the password with you separately.
+                                </p>
+                            </div>
+                            ` : ''}
+
+                            <!-- Info -->
+                            <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; margin-top: 20px;">
+                                <p style="color: #6b7280; font-size: 12px; margin: 0 0 8px;">
+                                    <span style="color: #9ca3af;">Files:</span> ${fileCount} (${totalSize})
+                                </p>
+                                <p style="color: #6b7280; font-size: 12px; margin: 0 0 8px;">
+                                    <span style="color: #9ca3af;">Expires in:</span> ${expiryText}
+                                </p>
+                                <p style="color: #6b7280; font-size: 12px; margin: 0;">
+                                    <span style="color: #9ca3af;">Security:</span> End-to-end encrypted P2P transfer
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 20px 30px; text-align: center; border-top: 1px solid rgba(74, 222, 128, 0.1); background: rgba(0,0,0,0.2);">
+                            <p style="color: #6b7280; font-size: 12px; margin: 0 0 10px;">
+                                Files are transferred directly between devices using WebRTC.<br>
+                                No data is stored on our servers.
+                            </p>
+                            <p style="color: #4b5563; font-size: 11px; margin: 0;">
+                                Powered by <span style="color: #4ade80;">Send Direct</span> - Quantum-Speed File Transfer
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+    `.trim();
+}
+
 // HTTP server for static files
 const server = http.createServer((req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -165,6 +276,66 @@ const server = http.createServer((req, res) => {
             } catch (e) {
                 res.writeHead(400, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ error: 'Invalid JSON' }));
+            }
+        });
+        return;
+    }
+
+    // POST to send email with share link
+    if (req.url === '/api/send-email' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+            try {
+                const data = JSON.parse(body);
+                const { recipients, senderEmail, title, message, link, fileCount, totalSize, password, expiryHours } = data;
+
+                if (!recipients || !senderEmail || !link) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: 'Missing required fields' }));
+                    return;
+                }
+
+                // Parse recipient emails
+                const recipientList = recipients.split(',').map(e => e.trim()).filter(e => e);
+
+                if (recipientList.length === 0) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: 'No valid recipients' }));
+                    return;
+                }
+
+                // Build email HTML
+                const emailHtml = buildEmailTemplate({
+                    senderEmail,
+                    title: title || 'File Transfer',
+                    message,
+                    link,
+                    fileCount,
+                    totalSize,
+                    hasPassword: !!password,
+                    expiryHours
+                });
+
+                // Send email to all recipients
+                const mailOptions = {
+                    from: `"Send Direct" <${process.env.SMTP_USER || 'noreply@senddirect.app'}>`,
+                    to: recipientList.join(', '),
+                    replyTo: senderEmail,
+                    subject: title ? `${title} - Secure File Transfer from ${senderEmail}` : `Secure File Transfer from ${senderEmail}`,
+                    html: emailHtml
+                };
+
+                await emailTransporter.sendMail(mailOptions);
+                console.log(`Email sent to ${recipientList.join(', ')} from ${senderEmail}`);
+
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: true, message: 'Email sent successfully' }));
+
+            } catch (e) {
+                console.error('Email send error:', e.message);
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Failed to send email', message: e.message }));
             }
         });
         return;
@@ -265,15 +436,28 @@ function handleMessage(ws, msg) {
                 send(ws, { type: 'error', message: 'Room exists' });
                 return;
             }
+
+            // Get options from message
+            const options = msg.options || {};
+            const maxDownloads = options.maxDownloads || 0; // 0 = unlimited
+            const expiryHours = options.expiryHours || 24;
+            const password = options.password || null;
+
             rooms.set(roomId, {
                 host: ws,
                 receiver: null,
-                lastActivity: Date.now()
+                lastActivity: Date.now(),
+                createdAt: Date.now(),
+                // Room options
+                maxDownloads: maxDownloads,
+                downloadCount: 0,
+                expiresAt: Date.now() + (expiryHours * 60 * 60 * 1000),
+                password: password
             });
             ws.roomId = roomId;
             ws.role = 'host';
             send(ws, { type: 'room-created', roomId });
-            console.log(`Room created: ${roomId}`);
+            console.log(`Room created: ${roomId} (max: ${maxDownloads}, expires: ${expiryHours}h, password: ${password ? 'yes' : 'no'})`);
             break;
 
         case 'join-room':
@@ -282,17 +466,64 @@ function handleMessage(ws, msg) {
                 send(ws, { type: 'error', message: 'Room not found' });
                 return;
             }
-            if (room.receiver) {
-                send(ws, { type: 'error', message: 'Room full' });
+
+            // Check if room has expired
+            if (room.expiresAt && Date.now() > room.expiresAt) {
+                rooms.delete(roomId);
+                send(ws, { type: 'error', message: 'This share link has expired' });
                 return;
             }
-            room.receiver = ws;
-            room.lastActivity = Date.now();
-            ws.roomId = roomId;
-            ws.role = 'receiver';
-            send(ws, { type: 'room-joined', roomId });
-            send(room.host, { type: 'peer-joined', roomId });
-            console.log(`Receiver joined: ${roomId}`);
+
+            // Check if download limit reached
+            if (room.maxDownloads > 0 && room.downloadCount >= room.maxDownloads) {
+                rooms.delete(roomId);
+                send(ws, { type: 'error', message: 'Download limit reached' });
+                return;
+            }
+
+            // Check if password is required
+            if (room.password) {
+                // Send password-required response
+                ws.pendingRoomId = roomId;
+                send(ws, { type: 'password-required', roomId });
+                return;
+            }
+
+            // No password required, join directly
+            joinRoom(ws, room, roomId);
+            break;
+
+        case 'verify-password':
+            const targetRoom = rooms.get(roomId);
+            if (!targetRoom) {
+                send(ws, { type: 'error', message: 'Room not found' });
+                return;
+            }
+
+            if (msg.password === targetRoom.password) {
+                joinRoom(ws, targetRoom, roomId);
+            } else {
+                send(ws, { type: 'error', message: 'Incorrect password' });
+            }
+            break;
+
+        case 'transfer-complete':
+            // Increment download count when transfer completes
+            const transferRoom = rooms.get(roomId);
+            if (transferRoom) {
+                transferRoom.downloadCount++;
+                console.log(`Room ${roomId} download count: ${transferRoom.downloadCount}/${transferRoom.maxDownloads || 'unlimited'}`);
+
+                // Delete room if download limit reached
+                if (transferRoom.maxDownloads > 0 && transferRoom.downloadCount >= transferRoom.maxDownloads) {
+                    console.log(`Room ${roomId} reached download limit, deleting...`);
+                    // Notify host that room is closing
+                    if (transferRoom.host) {
+                        send(transferRoom.host, { type: 'room-closed', reason: 'Download limit reached' });
+                    }
+                    rooms.delete(roomId);
+                }
+            }
             break;
 
         case 'offer':
@@ -309,6 +540,20 @@ function handleMessage(ws, msg) {
             send(ws, { type: 'pong' });
             break;
     }
+}
+
+function joinRoom(ws, room, roomId) {
+    if (room.receiver) {
+        send(ws, { type: 'error', message: 'Room full' });
+        return;
+    }
+    room.receiver = ws;
+    room.lastActivity = Date.now();
+    ws.roomId = roomId;
+    ws.role = 'receiver';
+    send(ws, { type: 'room-joined', roomId });
+    send(room.host, { type: 'peer-joined', roomId });
+    console.log(`Receiver joined: ${roomId}`);
 }
 
 function forwardToOtherPeer(ws, msg) {
