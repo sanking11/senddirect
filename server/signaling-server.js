@@ -13,14 +13,17 @@ const emailTransporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.protonmail.ch',
     port: parseInt(process.env.SMTP_PORT) || 587,
     secure: false, // Use STARTTLS
+    requireTLS: true,
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
     },
     tls: {
-        ciphers: 'SSLv3',
+        minVersion: 'TLSv1.2',
         rejectUnauthorized: true
-    }
+    },
+    debug: true,
+    logger: true
 });
 
 const PORT = process.env.PORT || 3000;
@@ -107,6 +110,17 @@ async function updateGlobalStats(files, bytes, duration) {
 
 // Initialize database on startup
 initDatabase();
+
+// Verify email configuration on startup
+emailTransporter.verify((error, success) => {
+    if (error) {
+        console.error('Email configuration error:', error.message);
+        console.error('SMTP_USER:', process.env.SMTP_USER ? 'Set' : 'NOT SET');
+        console.error('SMTP_PASS:', process.env.SMTP_PASS ? 'Set' : 'NOT SET');
+    } else {
+        console.log('Email server is ready to send messages');
+    }
+});
 
 // Build HTML email template
 function buildEmailTemplate({ senderEmail, title, message, link, fileCount, totalSize, hasPassword, expiryHours }) {
