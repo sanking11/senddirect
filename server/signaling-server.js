@@ -8,11 +8,11 @@ const fs = require('fs');
 const { Pool } = require('pg');
 const nodemailer = require('nodemailer');
 
-// Email transporter configuration (Proton Mail SMTP - using port 2525 to bypass blocking)
+// Email transporter configuration (Proton Mail SMTP)
 function getEmailTransporter() {
     return nodemailer.createTransport({
         host: 'smtp.protonmail.ch',
-        port: 2525, // Alternative port to bypass firewall blocking
+        port: 587,
         secure: false,
         auth: {
             user: process.env.SMTP_USER,
@@ -21,9 +21,9 @@ function getEmailTransporter() {
         tls: {
             rejectUnauthorized: false
         },
-        connectionTimeout: 30000,
-        greetingTimeout: 30000,
-        socketTimeout: 60000
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000
     });
 }
 
@@ -113,7 +113,7 @@ async function updateGlobalStats(files, bytes, duration) {
 initDatabase();
 
 // Verify email configuration on startup
-console.log('SMTP Configuration (Proton Mail - Port 2525):');
+console.log('SMTP Configuration (Proton Mail):');
 console.log('  SMTP_USER:', process.env.SMTP_USER ? process.env.SMTP_USER : 'NOT SET');
 console.log('  SMTP_PASS:', process.env.SMTP_PASS ? 'Set (' + process.env.SMTP_PASS.length + ' chars)' : 'NOT SET');
 
@@ -347,7 +347,7 @@ const server = http.createServer((req, res) => {
                     html: emailHtml
                 };
 
-                console.log('Attempting to send email via Proton Mail (port 2525)...');
+                console.log('Attempting to send email via Proton Mail...');
                 console.log('To:', recipientList.join(', '));
                 console.log('From:', process.env.SMTP_USER);
 
