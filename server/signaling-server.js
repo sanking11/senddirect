@@ -11,19 +11,19 @@ const nodemailer = require('nodemailer');
 // Email transporter configuration (Proton Mail SMTP)
 const emailTransporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.protonmail.ch',
-    port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: false, // Use STARTTLS
-    requireTLS: true,
+    port: parseInt(process.env.SMTP_PORT) || 465,
+    secure: true, // Use SSL on port 465
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
     },
     tls: {
         minVersion: 'TLSv1.2',
-        rejectUnauthorized: true
+        rejectUnauthorized: false // Allow self-signed certs
     },
-    debug: true,
-    logger: true
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000
 });
 
 const PORT = process.env.PORT || 3000;
