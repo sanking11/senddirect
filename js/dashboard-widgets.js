@@ -681,7 +681,7 @@ class StatsWidgets {
     showStatsWidgets() {
         const statsSection = document.getElementById('statsWidgets');
         if (statsSection) {
-            statsSection.style.display = 'grid';
+            statsSection.style.display = 'flex';
         }
     }
 
