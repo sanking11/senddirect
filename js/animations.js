@@ -605,6 +605,7 @@ function initTypingEffect() {
 
 // Enhanced hover effects for all liquid-glass elements
 document.addEventListener('mouseenter', (e) => {
+    if (!e.target || typeof e.target.closest !== 'function') return;
     const glassElement = e.target.closest('.liquid-glass');
     if (glassElement && !glassElement.classList.contains('header')) {
         // Trigger the holographic shimmer

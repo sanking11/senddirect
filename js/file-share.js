@@ -587,11 +587,12 @@ class FileShare {
             const link = `${window.location.origin}${basePath}?Q-Gate=${this.roomId}`;
 
             // If email mode, send the email
+            let emailSentSuccessfully = false;
             if (this.transferMode === 'email') {
                 const emailData = this.getEmailData();
                 try {
                     await this.sendEmailNotification(link, emailData);
-                    this.showNotification('Email sent successfully!', 'success');
+                    emailSentSuccessfully = true;
                 } catch (emailError) {
                     this.showNotification('Email sending failed: ' + emailError.message, 'error');
                     // Continue anyway - link is still created
@@ -606,6 +607,22 @@ class FileShare {
                 const heroCard = document.querySelector('.hero-card');
                 if (heroCard) heroCard.classList.remove('data-flowing');
 
+                // Update UI based on mode
+                const statusTitle = document.querySelector('.status-title');
+                const statusText = document.querySelector('.status-text');
+                const radarLoader = document.querySelector('.radar-loader');
+
+                if (this.transferMode === 'email' && emailSentSuccessfully) {
+                    // Email mode - show success message
+                    if (statusTitle) statusTitle.textContent = 'Email Sent Successfully!';
+                    if (statusText) statusText.textContent = 'The recipient will receive an email with the download link.';
+                    if (radarLoader) radarLoader.innerHTML = '<div style="font-size: 48px;">✓</div>';
+                } else if (this.transferMode === 'email' && !emailSentSuccessfully) {
+                    // Email failed - show link sharing fallback
+                    if (statusTitle) statusTitle.textContent = 'Email Failed - Share Link Instead';
+                    if (statusText) statusText.textContent = 'Copy this link and share it manually with the recipient.';
+                }
+
                 // Smooth scroll to share link section
                 setTimeout(() => {
                     shareLinkSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -617,9 +634,9 @@ class FileShare {
 
             await this.initializeWebRTC();
 
-            if (this.transferMode === 'email') {
-                this.showNotification('Link sent via email! Waiting for recipient...', 'success');
-            } else {
+            if (this.transferMode === 'email' && emailSentSuccessfully) {
+                this.showNotification('Email sent! Waiting for recipient to download...', 'success');
+            } else if (this.transferMode === 'link') {
                 this.showNotification('Share link created!', 'success');
             }
 
