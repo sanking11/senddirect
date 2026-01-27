@@ -18,7 +18,7 @@ async function sendEmailViaResend(to, subject, html, replyTo) {
         }
 
         const data = JSON.stringify({
-            from: 'Send Direct <onboarding@resend.dev>',
+            from: 'Send Direct <noreply@senddirect.me>',
             to: Array.isArray(to) ? to : [to],
             subject: subject,
             html: html,
