@@ -3,27 +3,55 @@
 
 const WebSocket = require('ws');
 const http = require('http');
+const https = require('https');
 const path = require('path');
 const fs = require('fs');
 const { Pool } = require('pg');
-const nodemailer = require('nodemailer');
 
-// Email transporter configuration (Proton Mail SMTP)
-function getEmailTransporter() {
-    return nodemailer.createTransport({
-        host: 'smtp.protonmail.ch',
-        port: 587,
-        secure: false,
-        auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS
-        },
-        tls: {
-            rejectUnauthorized: false
-        },
-        connectionTimeout: 10000,
-        greetingTimeout: 10000,
-        socketTimeout: 15000
+// Send email using Resend HTTP API (no SMTP port blocking issues)
+async function sendEmailViaResend(to, subject, html, replyTo) {
+    return new Promise((resolve, reject) => {
+        const apiKey = process.env.RESEND_API_KEY;
+        if (!apiKey) {
+            reject(new Error('RESEND_API_KEY not configured'));
+            return;
+        }
+
+        const data = JSON.stringify({
+            from: 'Send Direct <onboarding@resend.dev>',
+            to: Array.isArray(to) ? to : [to],
+            subject: subject,
+            html: html,
+            reply_to: replyTo
+        });
+
+        const options = {
+            hostname: 'api.resend.com',
+            port: 443,
+            path: '/emails',
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(data)
+            }
+        };
+
+        const req = https.request(options, (res) => {
+            let body = '';
+            res.on('data', chunk => body += chunk);
+            res.on('end', () => {
+                if (res.statusCode >= 200 && res.statusCode < 300) {
+                    resolve(JSON.parse(body));
+                } else {
+                    reject(new Error(`Resend API error: ${res.statusCode} - ${body}`));
+                }
+            });
+        });
+
+        req.on('error', (e) => reject(e));
+        req.write(data);
+        req.end();
     });
 }
 
@@ -113,20 +141,13 @@ async function updateGlobalStats(files, bytes, duration) {
 initDatabase();
 
 // Verify email configuration on startup
-console.log('SMTP Configuration (Proton Mail):');
-console.log('  SMTP_USER:', process.env.SMTP_USER ? process.env.SMTP_USER : 'NOT SET');
-console.log('  SMTP_PASS:', process.env.SMTP_PASS ? 'Set (' + process.env.SMTP_PASS.length + ' chars)' : 'NOT SET');
+console.log('Email Configuration (Resend):');
+console.log('  RESEND_API_KEY:', process.env.RESEND_API_KEY ? 'Set (' + process.env.RESEND_API_KEY.length + ' chars)' : 'NOT SET');
 
-if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-    getEmailTransporter().verify((error, success) => {
-        if (error) {
-            console.error('Email verification failed:', error.message);
-        } else {
-            console.log('Email server is ready to send messages');
-        }
-    });
+if (process.env.RESEND_API_KEY) {
+    console.log('Email service ready (Resend HTTP API)');
 } else {
-    console.log('Email not configured - SMTP credentials missing');
+    console.log('Email not configured - RESEND_API_KEY missing');
 }
 
 // Build HTML email template
@@ -244,7 +265,6 @@ const server = http.createServer((req, res) => {
 
     // Proxy TURN credentials (keeps API key hidden)
     if (req.url === '/api/turn-credentials') {
-        const https = require('https');
         const apiKey = process.env.METERED_API_KEY;
         const url = `https://senddirect.metered.live/api/v1/turn/credentials?apiKey=${apiKey}`;
 
@@ -338,22 +358,15 @@ const server = http.createServer((req, res) => {
                     expiryHours
                 });
 
-                // Send email via Proton Mail SMTP
-                const mailOptions = {
-                    from: `"Send Direct" <${process.env.SMTP_USER}>`,
-                    to: recipientList.join(', '),
-                    replyTo: senderEmail,
-                    subject: title ? `${title} - Secure File Transfer` : `Secure File Transfer from ${senderEmail}`,
-                    html: emailHtml
-                };
+                // Send email via Resend HTTP API
+                const emailSubject = title ? `${title} - Secure File Transfer` : `Secure File Transfer from ${senderEmail}`;
 
-                console.log('Attempting to send email via Proton Mail...');
+                console.log('Attempting to send email via Resend...');
                 console.log('To:', recipientList.join(', '));
-                console.log('From:', process.env.SMTP_USER);
+                console.log('Reply-To:', senderEmail);
 
-                const transporter = getEmailTransporter();
-                const result = await transporter.sendMail(mailOptions);
-                console.log('Email sent successfully:', result.messageId);
+                const result = await sendEmailViaResend(recipientList, emailSubject, emailHtml, senderEmail);
+                console.log('Email sent successfully:', result.id);
 
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ success: true, message: 'Email sent successfully' }));
