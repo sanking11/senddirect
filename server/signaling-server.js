@@ -28,9 +28,15 @@ function getEmailTransporter() {
 // Send email using Proton Bridge SMTP
 async function sendEmailViaSMTP(to, subject, html, replyTo) {
     const transporter = getEmailTransporter();
+    const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER;
 
     const mailOptions = {
-        from: `"Send Direct" <${process.env.SMTP_USER}>`,
+        from: `"Send Direct" <${fromAddress}>`,
+        sender: fromAddress,
+        envelope: {
+            from: fromAddress,
+            to: Array.isArray(to) ? to : [to]
+        },
         to: Array.isArray(to) ? to.join(', ') : to,
         replyTo: replyTo,
         subject: subject,
@@ -252,6 +258,21 @@ const server = http.createServer((req, res) => {
     // Proxy TURN credentials (keeps API key hidden)
     if (req.url === '/api/turn-credentials') {
         const apiKey = process.env.METERED_API_KEY;
+
+        // Use self-hosted coturn STUN/TURN server
+        if (!apiKey) {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify([
+                { urls: 'stun:senddirect.me:3478' },
+                {
+                    urls: 'turn:senddirect.me:3478',
+                    username: 'senddirect',
+                    credential: 'SendDirectSTUN2024'
+                }
+            ]));
+            return;
+        }
+
         const url = `https://senddirect.metered.live/api/v1/turn/credentials?apiKey=${apiKey}`;
 
         https.get(url, (apiRes) => {
@@ -261,9 +282,17 @@ const server = http.createServer((req, res) => {
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(data);
             });
-        }).on('error', (err) => {
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Failed to fetch credentials' }));
+        }).on('error', () => {
+            // Fallback to self-hosted coturn on error
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify([
+                { urls: 'stun:senddirect.me:3478' },
+                {
+                    urls: 'turn:senddirect.me:3478',
+                    username: 'senddirect',
+                    credential: 'SendDirectSTUN2024'
+                }
+            ]));
         });
         return;
     }
