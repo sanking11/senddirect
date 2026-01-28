@@ -13,7 +13,7 @@ const nodemailer = require('nodemailer');
 function getEmailTransporter() {
     return nodemailer.createTransport({
         host: '127.0.0.1',
-        port: 1025,  // Proton Bridge SMTP port
+        port: 1026,  // Proton Bridge SMTP port
         secure: false,
         auth: {
             user: process.env.SMTP_USER,  // Your Proton Mail email
