@@ -489,9 +489,8 @@ class FileShare {
     async sendEmailNotification(link, emailData) {
         try {
             const totalSize = this.files.reduce((sum, f) => sum + f.size, 0);
-            // Use Railway for email API (Render blocks SMTP ports)
-            const emailApiUrl = 'https://p2p-file-share-production-6da9.up.railway.app/api/send-email';
-            const response = await fetch(emailApiUrl, {
+            // Use local email API (self-hosted with Proton Bridge)
+            const response = await fetch('/api/send-email', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

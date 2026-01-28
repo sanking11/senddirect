@@ -16,6 +16,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "nodemailer": "^6.10.1",
     "pg": "^8.11.3",
     "ws": "^8.14.2"
   }

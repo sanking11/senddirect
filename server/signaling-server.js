@@ -7,52 +7,37 @@ const https = require('https');
 const path = require('path');
 const fs = require('fs');
 const { Pool } = require('pg');
+const nodemailer = require('nodemailer');
 
-// Send email using Resend HTTP API (no SMTP port blocking issues)
-async function sendEmailViaResend(to, subject, html, replyTo) {
-    return new Promise((resolve, reject) => {
-        const apiKey = process.env.RESEND_API_KEY;
-        if (!apiKey) {
-            reject(new Error('RESEND_API_KEY not configured'));
-            return;
+// Proton Bridge SMTP configuration (runs locally on your server)
+function getEmailTransporter() {
+    return nodemailer.createTransport({
+        host: '127.0.0.1',
+        port: 1025,  // Proton Bridge SMTP port
+        secure: false,
+        auth: {
+            user: process.env.SMTP_USER,  // Your Proton Mail email
+            pass: process.env.SMTP_PASS   // Proton Bridge password (from Bridge app)
+        },
+        tls: {
+            rejectUnauthorized: false
         }
-
-        const data = JSON.stringify({
-            from: 'Send Direct <noreply@senddirect.me>',
-            to: Array.isArray(to) ? to : [to],
-            subject: subject,
-            html: html,
-            reply_to: replyTo
-        });
-
-        const options = {
-            hostname: 'api.resend.com',
-            port: 443,
-            path: '/emails',
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json',
-                'Content-Length': Buffer.byteLength(data)
-            }
-        };
-
-        const req = https.request(options, (res) => {
-            let body = '';
-            res.on('data', chunk => body += chunk);
-            res.on('end', () => {
-                if (res.statusCode >= 200 && res.statusCode < 300) {
-                    resolve(JSON.parse(body));
-                } else {
-                    reject(new Error(`Resend API error: ${res.statusCode} - ${body}`));
-                }
-            });
-        });
-
-        req.on('error', (e) => reject(e));
-        req.write(data);
-        req.end();
     });
+}
+
+// Send email using Proton Bridge SMTP
+async function sendEmailViaSMTP(to, subject, html, replyTo) {
+    const transporter = getEmailTransporter();
+
+    const mailOptions = {
+        from: `"Send Direct" <${process.env.SMTP_USER}>`,
+        to: Array.isArray(to) ? to.join(', ') : to,
+        replyTo: replyTo,
+        subject: subject,
+        html: html
+    };
+
+    return transporter.sendMail(mailOptions);
 }
 
 const PORT = process.env.PORT || 3000;
@@ -141,13 +126,14 @@ async function updateGlobalStats(files, bytes, duration) {
 initDatabase();
 
 // Verify email configuration on startup
-console.log('Email Configuration (Resend):');
-console.log('  RESEND_API_KEY:', process.env.RESEND_API_KEY ? 'Set (' + process.env.RESEND_API_KEY.length + ' chars)' : 'NOT SET');
+console.log('Email Configuration (Proton Bridge):');
+console.log('  SMTP_USER:', process.env.SMTP_USER ? process.env.SMTP_USER : 'NOT SET');
+console.log('  SMTP_PASS:', process.env.SMTP_PASS ? 'Set (' + process.env.SMTP_PASS.length + ' chars)' : 'NOT SET');
 
-if (process.env.RESEND_API_KEY) {
-    console.log('Email service ready (Resend HTTP API)');
+if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    console.log('Email service ready (Proton Bridge SMTP on localhost:1025)');
 } else {
-    console.log('Email not configured - RESEND_API_KEY missing');
+    console.log('Email not configured - SMTP_USER and SMTP_PASS required');
 }
 
 // Build HTML email template
@@ -358,15 +344,15 @@ const server = http.createServer((req, res) => {
                     expiryHours
                 });
 
-                // Send email via Resend HTTP API
+                // Send email via Proton Bridge SMTP
                 const emailSubject = title ? `${title} - Secure File Transfer` : `Secure File Transfer from ${senderEmail}`;
 
-                console.log('Attempting to send email via Resend...');
+                console.log('Attempting to send email via Proton Bridge...');
                 console.log('To:', recipientList.join(', '));
                 console.log('Reply-To:', senderEmail);
 
-                const result = await sendEmailViaResend(recipientList, emailSubject, emailHtml, senderEmail);
-                console.log('Email sent successfully:', result.id);
+                const result = await sendEmailViaSMTP(recipientList, emailSubject, emailHtml, senderEmail);
+                console.log('Email sent successfully:', result.messageId);
 
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ success: true, message: 'Email sent successfully' }));
