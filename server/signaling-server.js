@@ -255,6 +255,50 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    // GitHub Webhook - auto deploy on push
+    if (req.url === '/api/webhook/deploy' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+            // Verify webhook secret (required environment variable)
+            const crypto = require('crypto');
+            const secret = process.env.WEBHOOK_SECRET;
+            if (!secret) {
+                console.error('WEBHOOK_SECRET environment variable is not set');
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Webhook not configured' }));
+                return;
+            }
+            const signature = req.headers['x-hub-signature-256'];
+            if (!signature) {
+                res.writeHead(403, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Missing signature' }));
+                return;
+            }
+            const hash = 'sha256=' + crypto.createHmac('sha256', secret).update(body).digest('hex');
+            if (hash !== signature) {
+                res.writeHead(403, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Invalid signature' }));
+                return;
+            }
+
+            console.log('Webhook received - deploying...');
+            const { exec } = require('child_process');
+            exec('cd /var/www/senddirect && git pull origin master && rm -rf js-src && npm install && npm run build', (err, stdout, stderr) => {
+                if (err) {
+                    console.error('Deploy error:', err.message);
+                } else {
+                    console.log('Deploy output:', stdout);
+                    // PM2 watch mode will auto-restart
+                }
+            });
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: true, message: 'Deploying...' }));
+        });
+        return;
+    }
+
     // Proxy TURN credentials (keeps API key hidden)
     if (req.url === '/api/turn-credentials') {
         const apiKey = process.env.METERED_API_KEY;

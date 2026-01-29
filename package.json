@@ -5,7 +5,8 @@
   "main": "server/signaling-server.js",
   "scripts": {
     "start": "node server/signaling-server.js",
-    "dev": "node server/signaling-server.js"
+    "dev": "node server/signaling-server.js",
+    "build": "node build.js"
   },
   "keywords": [
     "webrtc",
@@ -19,5 +20,8 @@
     "nodemailer": "^6.10.1",
     "pg": "^8.11.3",
     "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "javascript-obfuscator": "^4.1.1"
   }
 }

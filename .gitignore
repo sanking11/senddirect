@@ -10,3 +10,6 @@ Thumbs.db
 
 # Test
 ws-test.html
+
+# Build (original JS backups before obfuscation)
+js-src/
