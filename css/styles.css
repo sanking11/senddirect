@@ -15,8 +15,19 @@
     z-index: 99999;
     border-radius: 50%;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.15s ease;
     will-change: transform;
+}
+
+/* Cursor transparent on hover over interactive elements */
+.cursor-dot.cursor-hidden,
+.cursor-outline.cursor-hidden {
+    opacity: 0.1 !important;
+}
+
+.cursor-scanline.cursor-hidden,
+.cursor-data.cursor-hidden {
+    opacity: 0 !important;
 }
 
 .cursor-dot {
