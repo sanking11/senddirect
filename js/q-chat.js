@@ -236,17 +236,22 @@ class QChat {
 
     async initializeWebRTC() {
         // Fetch TURN credentials from server (API key hidden)
-        let iceServers = [];
+        const fallbackServers = [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+        ];
+        let iceServers = fallbackServers;
         try {
             const response = await fetch('/api/turn-credentials');
-            iceServers = await response.json();
-            console.log('Q-Chat: Using TURN servers for NAT traversal');
+            const data = await response.json();
+            if (Array.isArray(data) && data.length > 0) {
+                iceServers = data;
+                console.log('Q-Chat: Using TURN servers for NAT traversal');
+            } else {
+                console.log('Q-Chat: Invalid TURN response, using STUN fallback');
+            }
         } catch (err) {
             console.log('Q-Chat: TURN fetch failed, using STUN fallback');
-            iceServers = [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' }
-            ];
         }
 
         const config = { iceServers };

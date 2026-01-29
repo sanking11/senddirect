@@ -303,16 +303,13 @@ const server = http.createServer((req, res) => {
     if (req.url === '/api/turn-credentials') {
         const apiKey = process.env.METERED_API_KEY;
 
-        // Use self-hosted coturn STUN/TURN server
+        // Use free Google STUN servers (coturn can't work through Cloudflare Tunnel - UDP not supported)
         if (!apiKey) {
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify([
-                { urls: 'stun:senddirect.me:3478' },
-                {
-                    urls: 'turn:senddirect.me:3478',
-                    username: 'senddirect',
-                    credential: 'SendDirectSTUN2024'
-                }
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' }
             ]));
             return;
         }
@@ -327,15 +324,12 @@ const server = http.createServer((req, res) => {
                 res.end(data);
             });
         }).on('error', () => {
-            // Fallback to self-hosted coturn on error
+            // Fallback to free Google STUN servers on error
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify([
-                { urls: 'stun:senddirect.me:3478' },
-                {
-                    urls: 'turn:senddirect.me:3478',
-                    username: 'senddirect',
-                    credential: 'SendDirectSTUN2024'
-                }
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' }
             ]));
         });
         return;

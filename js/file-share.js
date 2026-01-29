@@ -851,15 +851,22 @@ class FileShare {
 
     async initializeWebRTC() {
         // Fetch TURN credentials from server (API key hidden)
-        let iceServers = [];
+        const fallbackServers = [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+        ];
+        let iceServers = fallbackServers;
         try {
             const response = await fetch('/api/turn-credentials');
-            iceServers = await response.json();
-            console.log('TURN credentials loaded:', iceServers.length, 'servers');
+            const data = await response.json();
+            if (Array.isArray(data) && data.length > 0) {
+                iceServers = data;
+                console.log('TURN credentials loaded:', iceServers.length, 'servers');
+            } else {
+                console.warn('Invalid TURN response, using fallback STUN');
+            }
         } catch (err) {
             console.error('Failed to fetch TURN credentials:', err);
-            // Fallback to STUN only
-            iceServers = [{ urls: 'stun:stun.relay.metered.ca:80' }];
         }
 
         const config = {
