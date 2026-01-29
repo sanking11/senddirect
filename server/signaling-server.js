@@ -299,7 +299,7 @@ const server = http.createServer((req, res) => {
 
             console.log('Webhook received - deploying...');
             const { exec } = require('child_process');
-            exec('cd /var/www/senddirect && git pull origin master && rm -rf js-src && npm install && npm run build', (err, stdout, stderr) => {
+            exec('cd /var/www/senddirect && git pull origin master && npm install', (err, stdout, stderr) => {
                 if (err) {
                     console.error('Deploy error:', err.message);
                 } else {
