@@ -5,38 +5,29 @@
     cursor: none;
 }
 
-/* Cursor wrapper - moves all elements together */
-.cursor-wrapper {
+/* Simple unified cursor */
+.cursor-main {
     pointer-events: none;
     position: fixed;
     top: 0;
     left: 0;
+    width: 24px;
+    height: 24px;
+    background: radial-gradient(circle, #000 0%, #000 35%, rgba(74, 222, 128, 0.7) 55%, rgba(74, 222, 128, 0.3) 75%, transparent 100%);
+    border: 2px solid rgba(74, 222, 128, 0.6);
+    border-radius: 50%;
     z-index: 99999;
     will-change: transform;
-    opacity: 1;
-    transition: opacity 0.15s ease;
+    box-shadow:
+        0 0 8px rgba(74, 222, 128, 0.5),
+        0 0 16px rgba(74, 222, 128, 0.3),
+        inset 0 0 8px rgba(0, 0, 0, 0.8);
+    transition: opacity 0.15s ease, transform 0.1s ease;
 }
 
-.cursor-wrapper.cursor-hidden {
-    opacity: 0.1;
-}
-
-/* Custom Cursor elements - positioned relative to wrapper */
-.cursor-dot,
-.cursor-outline {
-    pointer-events: none;
-    position: absolute;
-    top: 0;
-    left: 0;
-    border-radius: 50%;
-    opacity: 1;
-    transform: translate(-50%, -50%);
-}
-
-/* Cursor transparent on hover over interactive elements */
-.cursor-dot.cursor-hidden,
-.cursor-outline.cursor-hidden {
-    opacity: 0.1 !important;
+.cursor-main.cursor-hidden {
+    opacity: 0.15;
+    transform: translate(-50%, -50%) scale(0.7);
 }
 
 .cursor-scanline.cursor-hidden,
