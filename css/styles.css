@@ -3622,7 +3622,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 1rem;
     margin-bottom: 1rem;
     padding-bottom: 1rem;
@@ -3638,7 +3638,7 @@ body {
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    margin-bottom: 1.5rem;
+    flex-shrink: 0;
 }
 
 .footer-logo-link {
@@ -3665,9 +3665,9 @@ body {
 
 .footer-status {
     display: flex;
-    gap: 1.5rem;
+    gap: 1rem;
     align-items: center;
-    margin-bottom: 1.5rem;
+    flex-shrink: 0;
 }
 
 .status-indicator {
@@ -4510,7 +4510,7 @@ body {
     }
 
     .footer-status {
-        flex-direction: column;
+        flex-wrap: wrap;
         gap: 0.5rem;
     }
 }
