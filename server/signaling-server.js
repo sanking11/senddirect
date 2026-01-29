@@ -291,11 +291,17 @@ const server = http.createServer((req, res) => {
                 return;
             }
             const hash = 'sha256=' + crypto.createHmac('sha256', secret).update(body).digest('hex');
+            console.log('Webhook signature check:');
+            console.log('  Expected:', hash.substring(0, 20) + '...');
+            console.log('  Received:', signature.substring(0, 20) + '...');
+            console.log('  Secret length:', secret.length);
             if (hash !== signature) {
+                console.log('  Result: MISMATCH');
                 res.writeHead(403, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ error: 'Invalid signature' }));
                 return;
             }
+            console.log('  Result: OK');
 
             console.log('Webhook received - deploying...');
             const { exec } = require('child_process');
