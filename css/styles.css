@@ -3620,6 +3620,7 @@ body {
 
 .footer-top {
     display: flex;
+    flex-direction: row;
     align-items: center;
     justify-content: space-between;
     flex-wrap: nowrap;
@@ -5023,10 +5024,7 @@ body {
 }
 
 /* Footer Status Indicators */
-.footer-status {
-    display: flex;
-    gap: 1rem;
-}
+/* Note: main .footer-status styles are at line ~3666 */
 
 .status-indicator {
     display: flex;
