@@ -28,17 +28,15 @@ files.forEach(file => {
 
     const result = JavaScriptObfuscator.obfuscate(code, {
         compact: true,
-        controlFlowFlattening: true,
-        controlFlowFlatteningThreshold: 0.5,
-        deadCodeInjection: true,
-        deadCodeInjectionThreshold: 0.2,
+        controlFlowFlattening: false,        // Disabled - major performance hit
+        deadCodeInjection: false,            // Disabled - adds bloat
         identifierNamesGenerator: 'hexadecimal',
         renameGlobals: false,
         selfDefending: false,
         stringArray: true,
-        stringArrayEncoding: ['base64'],
-        stringArrayThreshold: 0.75,
-        transformObjectKeys: true,
+        stringArrayEncoding: [],             // No encoding - faster parsing
+        stringArrayThreshold: 0.5,           // Reduced from 0.75
+        transformObjectKeys: false,          // Disabled - minor performance hit
         unicodeEscapeSequence: false
     });
 
