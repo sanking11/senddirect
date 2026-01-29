@@ -255,6 +255,21 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    // Git version info
+    if (req.url === '/api/version') {
+        try {
+            const { execSync } = require('child_process');
+            const hash = execSync('git rev-parse --short HEAD', { cwd: STATIC_DIR }).toString().trim();
+            const date = execSync('git log -1 --format=%ci', { cwd: STATIC_DIR }).toString().trim();
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ hash, date }));
+        } catch {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ hash: 'unknown', date: '' }));
+        }
+        return;
+    }
+
     // GitHub Webhook - auto deploy on push
     if (req.url === '/api/webhook/deploy' && req.method === 'POST') {
         let body = '';

@@ -3744,6 +3744,46 @@ body {
     border-top: 1px solid rgba(74, 222, 128, 0.1);
 }
 
+.footer-build-hash {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(74, 222, 128, 0.05);
+}
+
+.build-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.55rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: rgba(74, 222, 128, 0.35);
+    padding: 0.15rem 0.4rem;
+    border: 1px solid rgba(74, 222, 128, 0.15);
+    border-radius: 3px;
+    text-transform: uppercase;
+}
+
+.build-hash {
+    font-family: 'Courier New', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: rgba(74, 222, 128, 0.3);
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.footer-build-hash:hover .build-hash {
+    color: rgba(74, 222, 128, 0.6);
+    text-shadow: 0 0 8px rgba(74, 222, 128, 0.2);
+}
+
+.footer-build-hash:hover .build-label {
+    color: rgba(74, 222, 128, 0.5);
+    border-color: rgba(74, 222, 128, 0.3);
+}
+
 .footer-border-animated {
     display: none;
 }

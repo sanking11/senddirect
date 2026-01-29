@@ -364,6 +364,10 @@
                         <span class="footer-emoji alien">&#x1F47D;</span>
                     </p>
                 </div>
+                <div class="footer-build-hash">
+                    <span class="build-label">BUILD</span>
+                    <span class="build-hash" id="commitHash">-------</span>
+                </div>
                 <div class="footer-origin">
                     <a href="https://www.newzealand.com" target="_blank" rel="noopener" class="nz-logo-link">
                         <div class="nz-logo-container">
@@ -469,6 +473,12 @@
                 qrContainer.innerHTML = svg;
             }
         });
+    </script>
+    <script>
+        fetch('/api/version').then(r=>r.json()).then(d=>{
+            const el=document.getElementById('commitHash');
+            if(el&&d.hash)el.textContent=d.hash;
+        }).catch(()=>{});
     </script>
 </body>
 </html>
