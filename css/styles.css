@@ -61,8 +61,8 @@
     height: 18px;
     border: 1.5px solid rgba(74, 222, 128, 0.6);
     background: radial-gradient(circle, #000 0%, #000 40%, rgba(0, 0, 0, 0.8) 60%, transparent 80%);
-    transition: all 0.15s ease-out, opacity 0.3s ease;
-    animation: cursorOutlineSpin 8s linear infinite, blackholeGlow 2s ease-in-out infinite;
+    transition: opacity 0.15s ease;
+    animation: blackholeGlow 2s ease-in-out infinite;
     box-shadow:
         0 0 4px rgba(74, 222, 128, 0.4),
         0 0 8px rgba(74, 222, 128, 0.25),
@@ -330,10 +330,12 @@
     50% { opacity: 0.6; transform: translate(-50%, -50%) scale(0.8); }
 }
 
+/* Disabled - was overriding JS transform positioning
 @keyframes cursorOutlineSpin {
     from { transform: translate(-50%, -50%) rotate(0deg); }
     to { transform: translate(-50%, -50%) rotate(360deg); }
 }
+*/
 
 @keyframes cursorInnerSpin {
     from { transform: rotate(0deg); }
@@ -378,13 +380,12 @@
     }
 }
 
-/* Cursor scroll state */
+/* Cursor scroll state - animations disabled (conflict with JS transform) */
 .cursor-dot.scrolling {
-    animation: cursorScrollPulse 0.3s ease-in-out infinite, cursorPulse 1.5s ease-in-out infinite;
+    filter: brightness(1.1); /* placeholder - animation disabled */
 }
 
 .cursor-outline.scrolling {
-    animation: cursorScrollSpin 0.5s linear infinite;
     border-color: rgba(74, 222, 128, 0.8);
     box-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
 }
@@ -3732,7 +3733,7 @@ body {
     border-radius: 6px;
     color: var(--accent-green);
     font-family: 'Orbitron', sans-serif;
-    font-size: 0.7rem;
+    font-size: 0.5rem;
     letter-spacing: 0.05em;
 }
 
