@@ -49,10 +49,10 @@ async function sendEmailViaSMTP(to, subject, html, replyTo) {
 const PORT = process.env.PORT || 3000;
 const STATIC_DIR = path.join(__dirname, '..');
 
-// PostgreSQL connection (uses DATABASE_URL from Render)
+// PostgreSQL connection
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+    ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false
 });
 
 // Initialize database table
