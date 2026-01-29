@@ -86,11 +86,12 @@
 }
 
 .cursor-outline.cursor-hover {
-    width: 60px;
-    height: 60px;
-    border-color: var(--accent-green);
-    background: rgba(74, 222, 128, 0.1);
-    animation: cursorHoverPulse 0.5s ease-in-out infinite;
+    width: 14px;
+    height: 14px;
+    border-color: rgba(74, 222, 128, 0.5);
+    background: transparent;
+    opacity: 0.6;
+    animation: none;
 }
 
 .cursor-outline.cursor-click {
@@ -104,35 +105,26 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 120px;
+    width: 80px;
     height: 2px;
     background: linear-gradient(90deg,
         transparent 0%,
-        rgba(74, 222, 128, 0.05) 1%,
-        rgba(74, 222, 128, 0.15) 3%,
-        rgba(74, 222, 128, 0.4) 8%,
-        rgba(74, 222, 128, 0.7) 18%,
-        rgba(74, 222, 128, 0.9) 32%,
-        rgba(74, 222, 128, 0.5) 44%,
+        rgba(74, 222, 128, 0.1) 5%,
+        rgba(74, 222, 128, 0.4) 15%,
+        rgba(74, 222, 128, 0.8) 35%,
         transparent 50%,
-        rgba(74, 222, 128, 0.5) 56%,
-        rgba(74, 222, 128, 0.9) 68%,
-        rgba(74, 222, 128, 0.7) 82%,
-        rgba(74, 222, 128, 0.4) 92%,
-        rgba(74, 222, 128, 0.15) 97%,
-        rgba(74, 222, 128, 0.05) 99%,
+        rgba(74, 222, 128, 0.8) 65%,
+        rgba(74, 222, 128, 0.4) 85%,
+        rgba(74, 222, 128, 0.1) 95%,
         transparent 100%);
-    z-index: 99998;
-    transition: width 0.2s ease, opacity 0.3s ease;
-    opacity: 0.95;
-    clip-path: polygon(0% 50%, 5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%);
+    z-index: 99997; /* Behind dot, same as outline */
+    transition: width 0.15s ease, opacity 0.2s ease;
+    opacity: 0.8;
     box-shadow:
-        0 0 10px 3px rgba(74, 222, 128, 0.7),
-        0 0 20px 5px rgba(74, 222, 128, 0.5),
-        0 0 30px 8px rgba(74, 222, 128, 0.3);
-    animation: scanlineGlow 1.5s ease-in-out infinite;
-    filter: blur(0.4px);
-    will-change: transform;
+        0 0 6px 2px rgba(74, 222, 128, 0.5),
+        0 0 12px 3px rgba(74, 222, 128, 0.3);
+    filter: blur(0.3px);
+    will-change: transform, opacity;
 }
 
 /* Cursor particle trail - GPU accelerated */
