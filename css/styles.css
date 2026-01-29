@@ -5,18 +5,32 @@
     cursor: none;
 }
 
-/* Custom Cursor - GPU accelerated */
-.cursor-dot,
-.cursor-outline {
+/* Cursor wrapper - moves all elements together */
+.cursor-wrapper {
     pointer-events: none;
     position: fixed;
     top: 0;
     left: 0;
     z-index: 99999;
-    border-radius: 50%;
-    opacity: 0;
-    transition: opacity 0.15s ease;
     will-change: transform;
+    opacity: 1;
+    transition: opacity 0.15s ease;
+}
+
+.cursor-wrapper.cursor-hidden {
+    opacity: 0.1;
+}
+
+/* Custom Cursor elements - positioned relative to wrapper */
+.cursor-dot,
+.cursor-outline {
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+    opacity: 1;
+    transform: translate(-50%, -50%);
 }
 
 /* Cursor transparent on hover over interactive elements */
@@ -113,11 +127,12 @@
 /* Cursor scan line effect - Accretion disk behind blackhole - GPU accelerated */
 .cursor-scanline {
     pointer-events: none;
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     width: 80px;
     height: 2px;
+    transform: translate(-50%, -50%) rotate(-7deg);
     background: linear-gradient(90deg,
         transparent 0%,
         rgba(74, 222, 128, 0.1) 5%,
