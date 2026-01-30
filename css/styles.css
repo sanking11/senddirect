@@ -5,21 +5,20 @@
     cursor: none;
 }
 
-/* All cursor elements - position fixed at origin, JS moves via transform */
+/* Cursor elements - CSS centers them, JS sets left/top to mouse position */
 .cursor-dot,
 .cursor-outline,
 .cursor-scanline {
     pointer-events: none;
     position: fixed;
-    top: 0;
-    left: 0;
     z-index: 99999;
-    will-change: transform;
     border-radius: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .cursor-scanline {
     border-radius: 0;
+    transform: translate(-50%, -50%) rotate(-7deg);
 }
 
 .cursor-dot {
