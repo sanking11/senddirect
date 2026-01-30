@@ -103,8 +103,13 @@
     <!-- Background Canvas -->
     <canvas id="liquidCanvas"></canvas>
 
-    <!-- Custom Cursor - Simplified single element -->
-    <div class="cursor-main" id="cursorMain"></div>
+    <!-- Custom Cursor - Wrapper contains all elements that move together -->
+    <div class="cursor-wrapper" id="cursorWrapper">
+        <div class="cursor-scanline" id="cursorScanline"></div>
+        <div class="cursor-outline" id="cursorOutline"></div>
+        <div class="cursor-dot" id="cursorDot"></div>
+    </div>
+    <div class="cursor-data" id="cursorData"></div>
 
     <!-- Futuristic Overlays -->
     <div class="grid-overlay"></div>
