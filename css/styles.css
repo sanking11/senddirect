@@ -5,20 +5,17 @@
     cursor: none;
 }
 
-/* Cursor elements - CSS centers them, JS sets left/top to mouse position */
+/* Cursor base styles - original from 2 days ago */
 .cursor-dot,
-.cursor-outline,
-.cursor-scanline {
+.cursor-outline {
     pointer-events: none;
     position: fixed;
+    top: 0;
+    left: 0;
     z-index: 99999;
     border-radius: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.cursor-scanline {
-    border-radius: 0;
-    transform: translate(-50%, -50%) rotate(-7deg);
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .cursor-dot {
@@ -30,6 +27,7 @@
         0 0 8px rgba(74, 222, 128, 0.3),
         0 0 12px rgba(74, 222, 128, 0.2),
         inset 0 0 6px rgba(0, 0, 0, 1);
+    transform: translate(-50%, -50%);
     animation: cursorPulse 1.5s ease-in-out infinite;
 }
 
@@ -52,8 +50,8 @@
     height: 18px;
     border: 1.5px solid rgba(74, 222, 128, 0.6);
     background: radial-gradient(circle, #000 0%, #000 40%, rgba(0, 0, 0, 0.8) 60%, transparent 80%);
-    transition: opacity 0.15s ease;
-    animation: blackholeGlow 2s ease-in-out infinite;
+    transition: all 0.15s ease-out, opacity 0.3s ease;
+    animation: cursorOutlineSpin 8s linear infinite, blackholeGlow 2s ease-in-out infinite;
     box-shadow:
         0 0 4px rgba(74, 222, 128, 0.4),
         0 0 8px rgba(74, 222, 128, 0.25),
@@ -102,25 +100,40 @@
 }
 
 /* Cursor scan line effect - Accretion disk behind blackhole */
-.cursor-wrapper > .cursor-scanline {
-    width: 80px;
+.cursor-scanline {
+    pointer-events: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 120px;
     height: 2px;
     background: linear-gradient(90deg,
         transparent 0%,
-        rgba(74, 222, 128, 0.1) 5%,
-        rgba(74, 222, 128, 0.4) 15%,
-        rgba(74, 222, 128, 0.8) 35%,
+        rgba(74, 222, 128, 0.05) 1%,
+        rgba(74, 222, 128, 0.15) 3%,
+        rgba(74, 222, 128, 0.4) 8%,
+        rgba(74, 222, 128, 0.7) 18%,
+        rgba(74, 222, 128, 0.9) 32%,
+        rgba(74, 222, 128, 0.5) 44%,
         transparent 50%,
-        rgba(74, 222, 128, 0.8) 65%,
-        rgba(74, 222, 128, 0.4) 85%,
-        rgba(74, 222, 128, 0.1) 95%,
+        rgba(74, 222, 128, 0.5) 56%,
+        rgba(74, 222, 128, 0.9) 68%,
+        rgba(74, 222, 128, 0.7) 82%,
+        rgba(74, 222, 128, 0.4) 92%,
+        rgba(74, 222, 128, 0.15) 97%,
+        rgba(74, 222, 128, 0.05) 99%,
         transparent 100%);
-    z-index: -1;
-    opacity: 0.8;
+    z-index: 99998;
+    transform: translate(-50%, -50%) rotate(-7deg);
+    transition: width 0.2s ease, opacity 0.3s ease;
+    opacity: 0;
+    clip-path: polygon(0% 50%, 5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%);
     box-shadow:
-        0 0 6px 2px rgba(74, 222, 128, 0.5),
-        0 0 12px 3px rgba(74, 222, 128, 0.3);
-    filter: blur(0.3px);
+        0 0 10px 3px rgba(74, 222, 128, 0.7),
+        0 0 20px 5px rgba(74, 222, 128, 0.5),
+        0 0 30px 8px rgba(74, 222, 128, 0.3);
+    animation: scanlineGlow 1.5s ease-in-out infinite;
+    filter: blur(0.4px);
 }
 
 /* Cursor particle trail - GPU accelerated */
@@ -316,12 +329,10 @@
     50% { opacity: 0.6; transform: translate(-50%, -50%) scale(0.8); }
 }
 
-/* Disabled - was overriding JS transform positioning
 @keyframes cursorOutlineSpin {
     from { transform: translate(-50%, -50%) rotate(0deg); }
     to { transform: translate(-50%, -50%) rotate(360deg); }
 }
-*/
 
 @keyframes cursorInnerSpin {
     from { transform: rotate(0deg); }
