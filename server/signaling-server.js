@@ -659,6 +659,8 @@ function joinRoom(ws, room, roomId) {
     ws.roomId = roomId;
     ws.role = 'receiver';
     send(ws, { type: 'room-joined', roomId });
+    // Send peer-joined to BOTH so both sides initialize WebRTC
+    send(ws, { type: 'peer-joined', roomId });
     send(room.host, { type: 'peer-joined', roomId });
     console.log(`Receiver joined: ${roomId}`);
 }
