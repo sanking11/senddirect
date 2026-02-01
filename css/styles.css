@@ -6965,7 +6965,7 @@ body:hover .corner-dot {
     align-items: center;
     justify-content: center;
     gap: 0.4rem;
-    font-size: 0.8rem;
+    font-size: 0.65rem;
     color: var(--accent-green);
     opacity: 0.7;
     margin-bottom: 0.5rem;
