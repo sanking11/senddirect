@@ -314,48 +314,20 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // Proxy TURN credentials (keeps API key hidden)
+    // TURN credentials for WebRTC NAT traversal
     if (req.url === '/api/turn-credentials') {
-        const apiKey = process.env.METERED_API_KEY;
-
-        // Free public STUN + TURN servers for NAT traversal
-        const freeServers = [
+        // Your own coturn server + Google STUN
+        const iceServers = [
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
-            // Free TURN servers from Open Relay (metered.ca)
-            { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-            { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-            { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
+            // Your own coturn TURN server
+            { urls: 'turn:103.19.4.43:3478', username: 'senddirect', credential: 'SecurePass123!' },
+            { urls: 'turn:103.19.4.43:3478?transport=tcp', username: 'senddirect', credential: 'SecurePass123!' },
+            { urls: 'turn:103.19.4.43:5349', username: 'senddirect', credential: 'SecurePass123!' }
         ];
 
-        if (!apiKey) {
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify(freeServers));
-            return;
-        }
-
-        const url = `https://senddirect.metered.live/api/v1/turn/credentials?apiKey=${apiKey}`;
-
-        https.get(url, (apiRes) => {
-            let data = '';
-            apiRes.on('data', chunk => data += chunk);
-            apiRes.on('end', () => {
-                try {
-                    // Combine Metered servers with free servers for redundancy
-                    const meteredServers = JSON.parse(data);
-                    const combined = [...freeServers, ...meteredServers];
-                    res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify(combined));
-                } catch (e) {
-                    res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify(freeServers));
-                }
-            });
-        }).on('error', () => {
-            // Fallback to free STUN + TURN servers on error
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify(freeServers));
-        });
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(iceServers));
         return;
     }
 
