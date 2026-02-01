@@ -651,13 +651,21 @@ function handleMessage(ws, msg) {
 
 function joinRoom(ws, room, roomId) {
     if (room.receiver) {
+        console.log(`Room ${roomId} is full - receiver already exists`);
         send(ws, { type: 'error', message: 'Room full' });
+        return;
+    }
+    if (!room.host || room.host.readyState !== WebSocket.OPEN) {
+        console.log(`Room ${roomId} host disconnected`);
+        rooms.delete(roomId);
+        send(ws, { type: 'error', message: 'Host disconnected' });
         return;
     }
     room.receiver = ws;
     room.lastActivity = Date.now();
     ws.roomId = roomId;
     ws.role = 'receiver';
+    console.log(`Receiver joining room ${roomId}, sending messages to both peers`);
     send(ws, { type: 'room-joined', roomId });
     // Send peer-joined to BOTH so both sides initialize WebRTC
     send(ws, { type: 'peer-joined', roomId });
