@@ -316,14 +316,16 @@ const server = http.createServer((req, res) => {
 
     // TURN credentials for WebRTC NAT traversal
     if (req.url === '/api/turn-credentials') {
-        // Your own coturn server + Google STUN
+        // Free public TURN servers from Open Relay (metered.ca)
         const iceServers = [
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
-            // Your own coturn TURN server
-            { urls: 'turn:103.19.4.43:3478', username: 'senddirect', credential: 'SecurePass123!' },
-            { urls: 'turn:103.19.4.43:3478?transport=tcp', username: 'senddirect', credential: 'SecurePass123!' },
-            { urls: 'turn:103.19.4.43:5349', username: 'senddirect', credential: 'SecurePass123!' }
+            // Open Relay free TURN servers
+            { urls: 'stun:stun.relay.metered.ca:80' },
+            { urls: 'turn:global.relay.metered.ca:80', username: 'e7d363d2367cd0c5a288e4c5', credential: 'Y2qGZAY5FPvCpzAz' },
+            { urls: 'turn:global.relay.metered.ca:80?transport=tcp', username: 'e7d363d2367cd0c5a288e4c5', credential: 'Y2qGZAY5FPvCpzAz' },
+            { urls: 'turn:global.relay.metered.ca:443', username: 'e7d363d2367cd0c5a288e4c5', credential: 'Y2qGZAY5FPvCpzAz' },
+            { urls: 'turns:global.relay.metered.ca:443?transport=tcp', username: 'e7d363d2367cd0c5a288e4c5', credential: 'Y2qGZAY5FPvCpzAz' }
         ];
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
