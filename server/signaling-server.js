@@ -340,8 +340,16 @@ const server = http.createServer((req, res) => {
             let data = '';
             apiRes.on('data', chunk => data += chunk);
             apiRes.on('end', () => {
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(data);
+                try {
+                    // Combine Metered servers with free servers for redundancy
+                    const meteredServers = JSON.parse(data);
+                    const combined = [...freeServers, ...meteredServers];
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify(combined));
+                } catch (e) {
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify(freeServers));
+                }
             });
         }).on('error', () => {
             // Fallback to free STUN + TURN servers on error
