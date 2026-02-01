@@ -318,14 +318,19 @@ const server = http.createServer((req, res) => {
     if (req.url === '/api/turn-credentials') {
         const apiKey = process.env.METERED_API_KEY;
 
-        // Use free Google STUN servers (coturn can't work through Cloudflare Tunnel - UDP not supported)
+        // Free public STUN + TURN servers for NAT traversal
+        const freeServers = [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            // Free TURN servers from Open Relay (metered.ca)
+            { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+            { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+            { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
+        ];
+
         if (!apiKey) {
             res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify([
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'stun:stun2.l.google.com:19302' }
-            ]));
+            res.end(JSON.stringify(freeServers));
             return;
         }
 
@@ -339,13 +344,9 @@ const server = http.createServer((req, res) => {
                 res.end(data);
             });
         }).on('error', () => {
-            // Fallback to free Google STUN servers on error
+            // Fallback to free STUN + TURN servers on error
             res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify([
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'stun:stun2.l.google.com:19302' }
-            ]));
+            res.end(JSON.stringify(freeServers));
         });
         return;
     }
