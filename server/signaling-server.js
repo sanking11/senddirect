@@ -1,7 +1,13 @@
 // WebSocket Signaling Server for WebRTC P2P File Sharing
 // Pure WebSocket for maximum performance
 
-require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
+const envPath = require('path').join(__dirname, '..', '.env');
+const result = require('dotenv').config({ path: envPath });
+if (result.error) {
+    console.error('Error loading .env file:', result.error);
+} else {
+    console.log('.env loaded from:', envPath);
+}
 
 const WebSocket = require('ws');
 const http = require('http');
