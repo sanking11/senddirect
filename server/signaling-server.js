@@ -355,9 +355,16 @@ const server = http.createServer((req, res) => {
             }
 
             // Cloudflare returns iceServers as object, wrap in array for WebRTC
-            const iceServers = Array.isArray(cfData.iceServers)
-                ? cfData.iceServers
-                : [cfData.iceServers];
+            // Also add Google STUN for better ICE candidate gathering
+            const cfServer = Array.isArray(cfData.iceServers)
+                ? cfData.iceServers[0]
+                : cfData.iceServers;
+
+            const iceServers = [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                cfServer
+            ];
 
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(iceServers));
