@@ -307,12 +307,22 @@ const server = http.createServer((req, res) => {
 
             console.log('Webhook received - deploying...');
             const { exec } = require('child_process');
-            exec('cd /var/www/senddirect && git pull origin master && npm install', (err, stdout, stderr) => {
+            const deployCmd = `
+                cd /var/www/senddirect &&
+                git fetch origin &&
+                git reset --hard origin/master &&
+                npm install &&
+                npm run build &&
+                pm2 restart senddirect --update-env
+            `.replace(/\n/g, ' ');
+
+            exec(deployCmd, { maxBuffer: 10 * 1024 * 1024 }, (err, stdout, stderr) => {
                 if (err) {
                     console.error('Deploy error:', err.message);
+                    console.error('stderr:', stderr);
                 } else {
-                    console.log('Deploy output:', stdout);
-                    // PM2 watch mode will auto-restart
+                    console.log('Deploy successful!');
+                    console.log('stdout:', stdout);
                 }
             });
 
