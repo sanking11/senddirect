@@ -17,12 +17,12 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "javascript-obfuscator": "^4.1.1",
     "nodemailer": "^6.10.1",
     "pg": "^8.11.3",
     "ws": "^8.14.2"
   },
   "devDependencies": {
-    "javascript-obfuscator": "^4.1.1",
     "nodemon": "^3.1.11"
   }
 }
