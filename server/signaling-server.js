@@ -354,6 +354,9 @@ const server = http.createServer((req, res) => {
                 throw new Error('Invalid iceServers format from Cloudflare');
             }
 
+            // Debug: Log Cloudflare response to diagnose TURN issues
+            console.log('Cloudflare TURN response:', JSON.stringify(cfData.iceServers));
+
             // Cloudflare returns iceServers as object, wrap in array for WebRTC
             // Also add Google STUN for better ICE candidate gathering
             const cfServer = Array.isArray(cfData.iceServers)
