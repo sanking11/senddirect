@@ -361,16 +361,26 @@ const server = http.createServer((req, res) => {
         .then(cfData => {
             console.log('Cloudflare response structure:', JSON.stringify(cfData, null, 2));
 
-            // Cloudflare returns iceServers array - validate it exists and is an array
-            if (!cfData.iceServers || !Array.isArray(cfData.iceServers)) {
-                console.error('Unexpected Cloudflare response format - iceServers missing or not array:', cfData);
+            // Cloudflare returns iceServers as an object (not array) with urls, username, credential
+            if (!cfData.iceServers) {
+                console.error('Unexpected Cloudflare response format - iceServers missing:', cfData);
                 throw new Error('Invalid iceServers format from Cloudflare');
+            }
+
+            // Convert Cloudflare's format to standard WebRTC iceServers array
+            let cloudflareServers;
+            if (Array.isArray(cfData.iceServers)) {
+                // Already an array
+                cloudflareServers = cfData.iceServers;
+            } else {
+                // Single object - wrap in array (Cloudflare's actual format)
+                cloudflareServers = [cfData.iceServers];
             }
 
             const iceServers = [
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
-                ...cfData.iceServers
+                ...cloudflareServers
             ];
             console.log('Cloudflare TURN credentials fetched successfully, server count:', iceServers.length);
             res.writeHead(200, { 'Content-Type': 'application/json' });
