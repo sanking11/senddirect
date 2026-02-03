@@ -314,22 +314,62 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // TURN credentials for WebRTC NAT traversal
+    // TURN credentials for WebRTC NAT traversal (Cloudflare TURN)
     if (req.url === '/api/turn-credentials') {
-        // Free public TURN servers from Open Relay (metered.ca)
-        const iceServers = [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            // Open Relay free TURN servers
-            { urls: 'stun:stun.relay.metered.ca:80' },
-            { urls: 'turn:global.relay.metered.ca:80', username: 'e7d363d2367cd0c5a288e4c5', credential: 'Y2qGZAY5FPvCpzAz' },
-            { urls: 'turn:global.relay.metered.ca:80?transport=tcp', username: 'e7d363d2367cd0c5a288e4c5', credential: 'Y2qGZAY5FPvCpzAz' },
-            { urls: 'turn:global.relay.metered.ca:443', username: 'e7d363d2367cd0c5a288e4c5', credential: 'Y2qGZAY5FPvCpzAz' },
-            { urls: 'turns:global.relay.metered.ca:443?transport=tcp', username: 'e7d363d2367cd0c5a288e4c5', credential: 'Y2qGZAY5FPvCpzAz' }
-        ];
+        // Cloudflare TURN credentials from environment variables
+        const CF_TURN_TOKEN_ID = process.env.CF_TURN_TOKEN_ID;
+        const CF_TURN_API_TOKEN = process.env.CF_TURN_API_TOKEN;
 
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(iceServers));
+        // Check if credentials are configured
+        if (!CF_TURN_TOKEN_ID || !CF_TURN_API_TOKEN) {
+            console.warn('Cloudflare TURN credentials not configured. Set CF_TURN_TOKEN_ID and CF_TURN_API_TOKEN environment variables.');
+            const fallbackServers = [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun.cloudflare.com:3478' }
+            ];
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(fallbackServers));
+            return;
+        }
+
+        // Fetch short-lived credentials from Cloudflare
+        fetch(`https://rtc.live.cloudflare.com/v1/turn/keys/${CF_TURN_TOKEN_ID}/credentials/generate`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${CF_TURN_API_TOKEN}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ ttl: 86400 }) // 24 hour credentials
+        })
+        .then(cfResponse => {
+            if (!cfResponse.ok) {
+                throw new Error(`Cloudflare API error: ${cfResponse.status}`);
+            }
+            return cfResponse.json();
+        })
+        .then(cfData => {
+            // Cloudflare returns iceServers array directly
+            const iceServers = [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                ...cfData.iceServers
+            ];
+            console.log('Cloudflare TURN credentials fetched successfully');
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(iceServers));
+        })
+        .catch(err => {
+            console.error('Failed to fetch Cloudflare TURN credentials:', err.message);
+            // Fallback to Google STUN only
+            const fallbackServers = [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun.cloudflare.com:3478' }
+            ];
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(fallbackServers));
+        });
         return;
     }
 
@@ -365,6 +405,30 @@ const server = http.createServer((req, res) => {
                     res.writeHead(500, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ error: 'Failed to update stats' }));
                 }
+            } catch (e) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Invalid JSON' }));
+            }
+        });
+        return;
+    }
+
+    // POST to track relay usage (for monitoring TURN server usage)
+    if (req.url === '/api/relay-usage' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+            try {
+                const data = JSON.parse(body);
+                const bytes = (typeof data.bytes === 'number' && data.bytes > 0) ? data.bytes : 0;
+
+                // Log relay usage for monitoring
+                console.log(`Relay usage reported: ${(bytes / (1024 * 1024)).toFixed(2)} MB`);
+
+                // Optionally store in database for tracking
+                // For now, just acknowledge the report
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: true, bytesReported: bytes }));
             } catch (e) {
                 res.writeHead(400, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ error: 'Invalid JSON' }));
