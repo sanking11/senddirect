@@ -694,6 +694,7 @@ function handleMessage(ws, msg) {
         case 'offer':
         case 'answer':
         case 'ice-candidate':
+        case 'retry-relay': // VPN fallback - signal peer to reinitialize with relay mode
             forwardToOtherPeer(ws, msg);
             break;
 
