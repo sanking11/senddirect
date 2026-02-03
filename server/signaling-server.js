@@ -344,55 +344,29 @@ const server = http.createServer((req, res) => {
         })
         .then(async cfResponse => {
             const responseText = await cfResponse.text();
-            console.log('Cloudflare API response status:', cfResponse.status);
-
             if (!cfResponse.ok) {
-                console.error('Cloudflare API error response:', responseText);
-                throw new Error(`Cloudflare API error: ${cfResponse.status} - ${responseText}`);
+                throw new Error(`Cloudflare API error: ${cfResponse.status}`);
             }
-
-            try {
-                return JSON.parse(responseText);
-            } catch (parseErr) {
-                console.error('Failed to parse Cloudflare response:', responseText);
-                throw new Error('Invalid JSON from Cloudflare');
-            }
+            return JSON.parse(responseText);
         })
         .then(cfData => {
-            console.log('Cloudflare response structure:', JSON.stringify(cfData, null, 2));
-
-            // Cloudflare returns iceServers as an object (not array) with urls, username, credential
             if (!cfData.iceServers) {
-                console.error('Unexpected Cloudflare response format - iceServers missing:', cfData);
                 throw new Error('Invalid iceServers format from Cloudflare');
             }
 
-            // Convert Cloudflare's format to standard WebRTC iceServers array
-            let cloudflareServers;
-            if (Array.isArray(cfData.iceServers)) {
-                // Already an array
-                cloudflareServers = cfData.iceServers;
-            } else {
-                // Single object - wrap in array (Cloudflare's actual format)
-                cloudflareServers = [cfData.iceServers];
-            }
+            // Cloudflare returns iceServers as object, wrap in array for WebRTC
+            const iceServers = Array.isArray(cfData.iceServers)
+                ? cfData.iceServers
+                : [cfData.iceServers];
 
-            const iceServers = [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-                ...cloudflareServers
-            ];
-            console.log('Cloudflare TURN credentials fetched successfully, server count:', iceServers.length);
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(iceServers));
         })
-        .catch(err => {
-            console.error('Failed to fetch Cloudflare TURN credentials:', err.message);
-            // Fallback to Google STUN only
+        .catch(() => {
+            // Fallback to STUN only (no TURN relay available)
             const fallbackServers = [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'stun:stun.cloudflare.com:3478' }
+                { urls: 'stun:stun.cloudflare.com:3478' },
+                { urls: 'stun:stun.l.google.com:19302' }
             ];
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(fallbackServers));
