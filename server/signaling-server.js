@@ -342,20 +342,37 @@ const server = http.createServer((req, res) => {
             },
             body: JSON.stringify({ ttl: 86400 }) // 24 hour credentials
         })
-        .then(cfResponse => {
+        .then(async cfResponse => {
+            const responseText = await cfResponse.text();
+            console.log('Cloudflare API response status:', cfResponse.status);
+
             if (!cfResponse.ok) {
-                throw new Error(`Cloudflare API error: ${cfResponse.status}`);
+                console.error('Cloudflare API error response:', responseText);
+                throw new Error(`Cloudflare API error: ${cfResponse.status} - ${responseText}`);
             }
-            return cfResponse.json();
+
+            try {
+                return JSON.parse(responseText);
+            } catch (parseErr) {
+                console.error('Failed to parse Cloudflare response:', responseText);
+                throw new Error('Invalid JSON from Cloudflare');
+            }
         })
         .then(cfData => {
-            // Cloudflare returns iceServers array directly
+            console.log('Cloudflare response structure:', JSON.stringify(cfData, null, 2));
+
+            // Cloudflare returns iceServers array - validate it exists and is an array
+            if (!cfData.iceServers || !Array.isArray(cfData.iceServers)) {
+                console.error('Unexpected Cloudflare response format - iceServers missing or not array:', cfData);
+                throw new Error('Invalid iceServers format from Cloudflare');
+            }
+
             const iceServers = [
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
                 ...cfData.iceServers
             ];
-            console.log('Cloudflare TURN credentials fetched successfully');
+            console.log('Cloudflare TURN credentials fetched successfully, server count:', iceServers.length);
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(iceServers));
         })
