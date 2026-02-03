@@ -5,7 +5,7 @@
   "main": "server/signaling-server.js",
   "scripts": {
     "start": "node server/signaling-server.js",
-    "dev": "node server/signaling-server.js",
+    "dev": "nodemon server/signaling-server.js --watch server",
     "build": "node build.js"
   },
   "keywords": [
@@ -22,6 +22,7 @@
     "ws": "^8.14.2"
   },
   "devDependencies": {
-    "javascript-obfuscator": "^4.1.1"
+    "javascript-obfuscator": "^4.1.1",
+    "nodemon": "^3.1.11"
   }
 }
