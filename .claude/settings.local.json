@@ -26,7 +26,8 @@
       "Bash(done)",
       "Bash(ls -la \"c:\\\\Users\\\\Sunny.Tailor\\\\Downloads\\\\tech-news-app\\\\tech-news-app\\\\js\"\" 2>/dev/null || dir \"c:UsersSunny.TailorDownloadstech-news-apptech-news-appjs \")",
       "Bash(npm run build:*)",
-      "Bash(powershell -Command \"Get-Content ''c:\\\\Users\\\\Sunny.Tailor\\\\Downloads\\\\tech-news-app\\\\tech-news-app\\\\js\\\\file-share.js'' -TotalCount 5\")"
+      "Bash(powershell -Command \"Get-Content ''c:\\\\Users\\\\Sunny.Tailor\\\\Downloads\\\\tech-news-app\\\\tech-news-app\\\\js\\\\file-share.js'' -TotalCount 5\")",
+      "Bash(node --check:*)"
     ]
   }
 }
