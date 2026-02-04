@@ -3050,6 +3050,8 @@ body {
     max-width: 1000px;
     margin: 1rem auto 0;
     overflow: hidden;
+    position: relative;
+    z-index: 2;
 }
 
 .stat-card {
@@ -3067,6 +3069,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 1) 100%);
+    z-index: 2;
 }
 
 .stat-card:hover {
