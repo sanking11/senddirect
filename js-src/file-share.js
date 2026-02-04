@@ -192,7 +192,7 @@ class FileShare {
             <div class="relay-warning-content">
                 <div class="relay-warning-icon">⚡</div>
                 <div class="relay-warning-text">
-                    <strong>Indirect Quantum Channel</strong>
+                    <strong>Indirect Quantum Connection</strong>
                     <span>Direct peer entanglement unavailable. Data is transmitted via an encrypted, indirect quantum channel.</span>
                     <span class="relay-usage">Monthly usage: ${this.formatRelayUsage(usedBytes)} / ${this.MONTHLY_RELAY_LIMIT_GB} GB (${usagePercent}%)</span>
                 </div>
@@ -244,13 +244,12 @@ class FileShare {
         styles.id = 'relayWarningStyles';
         styles.textContent = `
             .relay-warning-banner {
-                background: linear-gradient(135deg, rgba(251, 146, 60, 0.25), rgba(239, 68, 68, 0.2)), rgba(20, 25, 35, 0.95);
+                background: linear-gradient(135deg, rgba(251, 146, 60, 0.15), rgba(239, 68, 68, 0.1)), linear-gradient(135deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 1) 100%);
                 border: 1px solid rgba(251, 146, 60, 0.4);
                 border-radius: 12px;
                 padding: 1rem;
                 margin-bottom: 1rem;
                 animation: slideDown 0.3s ease;
-                backdrop-filter: blur(12px);
             }
             @keyframes slideDown {
                 from { opacity: 0; transform: translateY(-10px); }
