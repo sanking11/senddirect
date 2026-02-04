@@ -5183,17 +5183,13 @@ body {
 }
 
 /* Cyber Border Glow */
-.hero-card,
-.share-link-section,
-.transfer-section {
+.hero-card {
     border: 1px solid transparent;
     background-clip: padding-box;
     transition: all 0.4s ease;
 }
 
-.hero-card::after,
-.share-link-section::after,
-.transfer-section::after {
+.hero-card::after {
     content: '';
     position: absolute;
     inset: -1px;
@@ -5215,9 +5211,7 @@ body {
     transition: opacity 0.4s ease;
 }
 
-.hero-card:hover::after,
-.share-link-section:hover::after,
-.transfer-section:hover::after {
+.hero-card:hover::after {
     opacity: 1;
 }
 
