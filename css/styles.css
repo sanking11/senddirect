@@ -3066,9 +3066,12 @@ body {
     overflow: hidden;
     min-height: 120px;
     width: 150px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     transition: all 0.3s ease;
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 1) 100%);
+    background: rgba(255, 255, 255, 0.08);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 0 29px -5px rgba(255, 255, 255, 0.5);
     z-index: 2;
 }
 

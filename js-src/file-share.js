@@ -244,12 +244,16 @@ class FileShare {
         styles.id = 'relayWarningStyles';
         styles.textContent = `
             .relay-warning-banner {
-                background: linear-gradient(135deg, rgba(251, 146, 60, 0.15), rgba(239, 68, 68, 0.1)), linear-gradient(135deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 1) 100%);
+                background: linear-gradient(135deg, rgba(251, 146, 60, 0.12), rgba(239, 68, 68, 0.08)), rgba(255, 255, 255, 0.08);
                 border: 1px solid rgba(251, 146, 60, 0.4);
                 border-radius: 12px;
                 padding: 1rem;
                 margin-bottom: 1rem;
                 animation: slideDown 0.3s ease;
+                -webkit-backdrop-filter: blur(12px);
+                backdrop-filter: blur(12px);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 0 29px -5px rgba(255, 255, 255, 0.3);
+                z-index: 2;
             }
             @keyframes slideDown {
                 from { opacity: 0; transform: translateY(-10px); }
