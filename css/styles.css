@@ -3066,6 +3066,7 @@ body {
     width: 150px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
+    background: rgba(45, 55, 65, 0.9);
 }
 
 .stat-card:hover {
