@@ -1986,7 +1986,10 @@ body {
     padding: 2.5rem;
     position: relative;
     overflow: hidden;
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+    background: rgba(255, 255, 255, 0.08);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 0 29px -5px rgba(255, 255, 255, 0.5);
 }
 
 .share-link-section.hidden {
@@ -2480,7 +2483,10 @@ body {
     padding: 2.5rem;
     position: relative;
     overflow: hidden;
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+    background: rgba(255, 255, 255, 0.08);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 0 29px -5px rgba(255, 255, 255, 0.5);
 }
 
 .transfer-section.hidden {
