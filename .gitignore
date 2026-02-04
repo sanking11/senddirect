@@ -12,4 +12,4 @@ Thumbs.db
 ws-test.html
 
 # Build (original JS backups before obfuscation)
-js-src/
+# js-src/  # Now tracking source files for deployment
