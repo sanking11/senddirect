@@ -1994,6 +1994,15 @@ body {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 0 29px -5px rgba(255, 255, 255, 0.5);
 }
 
+.share-link-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #1e293b;
+    border-radius: inherit;
+    z-index: -1;
+}
+
 .share-link-section.hidden {
     display: none;
 }
@@ -2491,6 +2500,15 @@ body {
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 0 29px -5px rgba(255, 255, 255, 0.5);
+}
+
+.transfer-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #1e293b;
+    border-radius: inherit;
+    z-index: -1;
 }
 
 .transfer-section.hidden {
