@@ -218,6 +218,10 @@ class FileShare {
 
     // Show direct P2P connection indicator
     showDirectConnectionBadge() {
+        // Remove relay warning banner if it exists (connection upgraded to direct)
+        const relayBanner = document.getElementById('relayWarningBanner');
+        if (relayBanner) relayBanner.remove();
+
         const existing = document.getElementById('directConnectionBadge');
         if (existing) existing.remove();
 
@@ -760,6 +764,25 @@ class FileShare {
                     this.updateShareStatus('Establishing connection...');
                     // Scroll to transfer section when peer connects
                     this.scrollToTransferSection();
+
+                    // Reset state for new transfer (supports multiple downloads)
+                    if (this.peerConnection) {
+                        this.peerConnection.close();
+                        this.peerConnection = null;
+                    }
+                    this.dataChannel = null;
+                    this.transferComplete = false;
+                    this.connectionAttempt = 0;
+                    this.forceRelayMode = false;
+                    this.cachedIceServers = null;
+
+                    // Remove old banners
+                    const oldRelay = document.getElementById('relayWarningBanner');
+                    if (oldRelay) oldRelay.remove();
+                    const oldDirect = document.getElementById('directConnectionBadge');
+                    if (oldDirect) oldDirect.remove();
+
+                    await this.initializeWebRTC();
                     await this.createAndSendOffer();
                 }
                 break;
@@ -1748,22 +1771,55 @@ class FileShare {
     }
 
     // Download all received files after transfer is complete
-    downloadAllFiles() {
+    async downloadAllFiles() {
         if (this.completedFiles.length === 0) return;
 
-        // Small delay between downloads to prevent browser issues
-        this.completedFiles.forEach((file, index) => {
-            setTimeout(() => {
-                const url = URL.createObjectURL(file.blob);
+        if (this.completedFiles.length === 1) {
+            // Single file - download directly
+            const file = this.completedFiles[0];
+            const url = URL.createObjectURL(file.blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = file.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } else {
+            // Multiple files - zip them together
+            if (typeof JSZip !== 'undefined') {
+                const zip = new JSZip();
+                this.completedFiles.forEach(file => {
+                    zip.file(file.name, file.blob);
+                });
+
+                this.showNotification('Creating zip file...', 'info');
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                const url = URL.createObjectURL(zipBlob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = file.name;
+                a.download = 'SendDirect-Files.zip';
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-            }, index * 500); // 500ms delay between each download
-        });
+                this.showNotification(`Downloaded ${this.completedFiles.length} files as zip`, 'success');
+            } else {
+                // Fallback: download individually if JSZip not available
+                this.completedFiles.forEach((file, index) => {
+                    setTimeout(() => {
+                        const url = URL.createObjectURL(file.blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = file.name;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    }, index * 500);
+                });
+            }
+        }
 
         this.completedFiles = [];
     }
