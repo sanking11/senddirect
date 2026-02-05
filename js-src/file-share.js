@@ -22,6 +22,7 @@ class FileShare {
         // Stats tracking for receiver
         this.receivedFilesCount = 0;
         this.receivedTotalBytes = 0;
+        this.completedFiles = []; // Store completed files for batch download
 
         // TURN relay tracking
         this.isUsingRelay = false;
@@ -1550,6 +1551,9 @@ class FileShare {
                 this.updateProgressBar(100);
                 this.showNotification('All files received!', 'success');
 
+                // Download all files now that transfer is complete
+                this.downloadAllFiles();
+
                 // Update global stats (receiver side)
                 const transferDuration = Date.now() - this.transferStartTime;
                 if (window.globalStats && this.receivedFilesCount > 0) {
@@ -1728,23 +1732,40 @@ class FileShare {
     assembleAndDownloadFile() {
         if (!this.receivedFileInfo || !this.receivedChunks.length) return;
 
+        // Store the file for batch download later (prevents connection interruption on mobile)
         const blob = new Blob(this.receivedChunks, { type: this.receivedFileInfo.mimeType || 'application/octet-stream' });
-        const url = URL.createObjectURL(blob);
+        this.completedFiles.push({
+            blob: blob,
+            name: this.receivedFileInfo.name
+        });
 
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = this.receivedFileInfo.name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        this.showNotification(`Downloaded: ${this.receivedFileInfo.name}`, 'success');
+        this.showNotification(`Received: ${this.receivedFileInfo.name}`, 'success');
 
         this.receivedChunks = [];
         this.receivedFileInfo = null;
         this.totalBytesTransferred = 0;
         this.transferStartTime = Date.now();
+    }
+
+    // Download all received files after transfer is complete
+    downloadAllFiles() {
+        if (this.completedFiles.length === 0) return;
+
+        // Small delay between downloads to prevent browser issues
+        this.completedFiles.forEach((file, index) => {
+            setTimeout(() => {
+                const url = URL.createObjectURL(file.blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = file.name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, index * 500); // 500ms delay between each download
+        });
+
+        this.completedFiles = [];
     }
 
     updateTransferStatus(text) {
