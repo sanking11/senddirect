@@ -524,11 +524,6 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    let urlPath = req.url.split('?')[0];
-    let filePath = (urlPath === '/' || urlPath === '')
-        ? path.join(STATIC_DIR, 'index.html')
-        : path.join(STATIC_DIR, urlPath);
-
     const contentTypes = {
         '.html': 'text/html',
         '.js': 'text/javascript',
@@ -541,15 +536,61 @@ const server = http.createServer((req, res) => {
         '.ico': 'image/x-icon'
     };
 
-    const ext = path.extname(filePath);
+    // Files/dirs that must never be served even if they carry an allowed extension
+    const BLOCKED_TOP_LEVEL = new Set([
+        'server', 'node_modules', 'js-src', 'build.js',
+        'package.json', 'package-lock.json', 'render.yaml',
+        '_redirects', '.hintrc', 'readme.md'
+    ]);
+
+    const sendIndex = () => {
+        fs.readFile(path.join(STATIC_DIR, 'index.html'), (err, content) => {
+            res.writeHead(err ? 500 : 200, { 'Content-Type': 'text/html' });
+            res.end(err ? 'Server Error' : content);
+        });
+    };
+
+    let urlPath = req.url.split('?')[0];
+    try {
+        urlPath = decodeURIComponent(urlPath);
+    } catch {
+        res.writeHead(400, { 'Content-Type': 'text/plain' });
+        res.end('Bad Request');
+        return;
+    }
+
+    if (urlPath === '/' || urlPath === '') {
+        sendIndex();
+        return;
+    }
+
+    // Resolve the request and confine it to STATIC_DIR (blocks ../ traversal).
+    // Treat the URL as absolute, normalize, then re-root it under STATIC_DIR.
+    const safeRelative = path.posix.normalize('/' + urlPath.replace(/\\/g, '/'));
+    const filePath = path.resolve(STATIC_DIR, '.' + safeRelative);
+    const rootWithSep = STATIC_DIR.endsWith(path.sep) ? STATIC_DIR : STATIC_DIR + path.sep;
+    if (filePath !== STATIC_DIR && !filePath.startsWith(rootWithSep)) {
+        res.writeHead(403, { 'Content-Type': 'text/plain' });
+        res.end('Forbidden');
+        return;
+    }
+
+    // Only serve known web assets; hide dotfiles (.env, .git, ...) and internals
+    // behind the SPA fallback so their existence isn't revealed.
+    const segments = path.relative(STATIC_DIR, filePath).split(path.sep);
+    const ext = path.extname(filePath).toLowerCase();
+    const isDotFile = segments.some(seg => seg.startsWith('.'));
+    const isBlocked = BLOCKED_TOP_LEVEL.has(segments[0].toLowerCase());
+    if (isDotFile || isBlocked || !Object.prototype.hasOwnProperty.call(contentTypes, ext)) {
+        sendIndex();
+        return;
+    }
+
     const contentType = contentTypes[ext] || 'application/octet-stream';
 
     fs.stat(filePath, (err, stats) => {
         if (err || stats.isDirectory()) {
-            fs.readFile(path.join(STATIC_DIR, 'index.html'), (err, content) => {
-                res.writeHead(err ? 500 : 200, { 'Content-Type': 'text/html' });
-                res.end(err ? 'Server Error' : content);
-            });
+            sendIndex();
         } else {
             fs.readFile(filePath, (err, content) => {
                 res.writeHead(err ? 500 : 200, { 'Content-Type': contentType });
